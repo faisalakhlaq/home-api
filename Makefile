@@ -2,7 +2,7 @@
 
 ## Backend-dev terminal
 test:
-	pytest -n auto rodinia
+	pytest -n auto apps
 
 mypy:
 	mypy --strict .
@@ -29,7 +29,7 @@ build_backend:
 	docker compose build backend;
 
 start_backend: ## Run backend and go to its shell
-	docker compose run --service-ports backend sh;
+	docker compose run --service-ports backend;
 
 prune: ## Prune volumes and containers
 	make prune_volumes;

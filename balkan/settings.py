@@ -5,12 +5,12 @@ from typing import List
 from django.core.management.utils import get_random_secret_key
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
-BASE_DIR = Path(__file__).resolve().parent
+BASE_DIR = Path(__file__).resolve().parent.parent
 
 SECRET_KEY = os.getenv("SECRET_KEY", default=get_random_secret_key())  # type: ignore
 
 # SECURITY WARNING: don't run with debug turned on in production!
-if os.getenv("RODINIA_DEBUG") == "true":
+if os.getenv("DEBUG") == "true":
     DEBUG = True
 else:
     DEBUG = False
@@ -18,7 +18,10 @@ else:
 ALLOWED_HOSTS: List[str] = os.getenv("ALLOWED_HOSTS").split(",")
 
 # Application definition
-THIRD_PARTY_APPS: List[str] = []
+THIRD_PARTY_APPS: List[str] = [
+    "rest_framework",
+    "corsheaders",
+]
 BASE_PROJECT_APPS: List[str] = []
 INSTALLED_APPS = (
     [
@@ -134,3 +137,8 @@ if allowed_origin_env:
 
 if os.getenv("CORS_ALLOW_CREDENTIALS") == "true":
     CORS_ALLOW_CREDENTIALS = True
+
+REST_FRAMEWORK = {
+    "NON_FIELD_ERRORS_KEY": "error",
+    "DEFAULT_SCHEMA_CLASS": "rest_framework.schemas.coreapi.AutoSchema",
+}
