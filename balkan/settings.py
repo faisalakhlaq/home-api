@@ -22,7 +22,10 @@ THIRD_PARTY_APPS: List[str] = [
     "rest_framework",
     "corsheaders",
 ]
-BASE_PROJECT_APPS: List[str] = []
+BASE_PROJECT_APPS: List[str] = [
+    "apps.core",
+    "apps.properties",
+]
 INSTALLED_APPS = (
     [
         "django.contrib.admin",
@@ -53,7 +56,7 @@ ROOT_URLCONF = "balkan.urls"
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
-        "DIRS":  [os.path.join(BASE_DIR, "static")],
+        "DIRS": [os.path.join(BASE_DIR, "static")],
         "APP_DIRS": True,
         "OPTIONS": {
             "context_processors": [
@@ -125,9 +128,9 @@ STATIC_ROOT = "static/"
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
-#############################
-###### CUSTOM SETTINGS ######
-#############################
+###################
+# CUSTOM SETTINGS #
+###################
 
 CSRF_COOKIE_SECURE = False
 
