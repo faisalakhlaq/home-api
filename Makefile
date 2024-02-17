@@ -29,7 +29,7 @@ build_backend:
 	docker compose build backend;
 
 start_backend: ## Run backend and go to its shell
-	docker compose run --service-ports backend;
+	docker compose run --service-ports -u 1000:1000 backend;
 
 prune: ## Prune volumes and containers
 	make prune_volumes;

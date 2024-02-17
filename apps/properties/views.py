@@ -25,13 +25,24 @@ class PropertyViewSet(ModelViewSet):
         "roof_type": "Tile",
         "address": "",
     }
-    Address payload within POST:
+    Address payload within properties POST:
     {
         "street": "Some street, building number, floor 1"
         "city": "City name"
         "region": "region name"
         "postal_code": "12345"
         "country": "Country Name"
+    }
+    Image payload within properties POST:
+    {
+        {
+            "title": "Optional",
+            "description": "Optional",
+            "is_primary": false,
+            "image": File,
+        }
+        ............
+        ............
     }
     """
 
