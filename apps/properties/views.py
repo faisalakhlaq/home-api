@@ -23,7 +23,8 @@ class PropertyViewSet(ModelViewSet):
         "heating": "Central heating with one heating unit.",
         "outer_walls": "Brick",
         "roof_type": "Tile",
-        "address": "",
+        "address": {},
+        "property_images": {}
     }
     Address payload within properties POST:
     {
