@@ -3,7 +3,8 @@ from typing import Any
 from django.core.validators import FileExtensionValidator
 from django.db import models
 
-from apps.core.models import timetracking
+from apps.core.models import TimeTracking
+from .property import Property
 
 
 def property_image_path(instance: Any, filename: str) -> str:
@@ -15,7 +16,7 @@ def property_image_path(instance: Any, filename: str) -> str:
     return "media/property/images/{0}/{1}".format(instance.id, filename)
 
 
-class PropertyImage(timetracking):
+class PropertyImage(TimeTracking):
     title = models.CharField(
         max_length=255,
         blank=True,
@@ -39,8 +40,12 @@ class PropertyImage(timetracking):
         help_text="Image of the property.",
     )
     property = models.ForeignKey(
-        property,
+        Property,
         on_delete=models.CASCADE,
         related_name="property_images",
         help_text="Image belong to the given property.",
     )
+
+    class Meta:
+        verbose_name = "Property Image"
+        verbose_name_plural = "Property Images"
