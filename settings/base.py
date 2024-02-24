@@ -9,12 +9,6 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 SECRET_KEY = os.getenv("SECRET_KEY", default=get_random_secret_key())  # type: ignore
 
-# SECURITY WARNING: don't run with debug turned on in production!
-if os.getenv("DEBUG") == "true":
-    DEBUG = True
-else:
-    DEBUG = False
-
 ALLOWED_HOSTS: List[str] = os.getenv("ALLOWED_HOSTS").split(",")
 
 # Application definition
@@ -70,24 +64,6 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = "balkan.wsgi.application"
-
-# Database
-# https://docs.djangoproject.com/en/4.2/ref/settings/#databases
-
-DATABASES = {
-    "default": {
-        "ENGINE": "django.db.backends.postgresql_psycopg2",
-        "NAME": os.environ.get("DATABASE_NAME"),
-        "USER": os.environ.get("DATABASE_USER"),
-        "PASSWORD": os.environ.get("DATABASE_PASSWORD"),
-        "HOST": os.environ.get("DATABASE_URL"),
-        "PORT": "5432",
-    }
-}
-
-
-# Password validation
-# https://docs.djangoproject.com/en/4.2/ref/settings/#auth-password-validators
 
 AUTH_PASSWORD_VALIDATORS = [
     {
