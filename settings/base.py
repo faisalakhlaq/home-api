@@ -4,12 +4,10 @@ from typing import List
 
 from django.core.management.utils import get_random_secret_key
 
-# Build paths inside the project like this: BASE_DIR / 'subdir'.
-BASE_DIR = Path(__file__).resolve().parent.parent
-
 SECRET_KEY = os.getenv("SECRET_KEY", default=get_random_secret_key())  # type: ignore
 
-ALLOWED_HOSTS: List[str] = os.getenv("ALLOWED_HOSTS").split(",")
+# Build paths inside the project like this: BASE_DIR / 'subdir'.
+BASE_DIR = Path(__file__).resolve().parent.parent
 
 # Application definition
 THIRD_PARTY_APPS: List[str] = [
@@ -103,21 +101,3 @@ STATIC_ROOT = "static/"
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
-
-###################
-# CUSTOM SETTINGS #
-###################
-
-CSRF_COOKIE_SECURE = False
-
-allowed_origin_env = os.getenv("CORS_ALLOWED_ORIGINS")
-if allowed_origin_env:
-    CORS_ALLOWED_ORIGINS = allowed_origin_env.split(",")
-
-if os.getenv("CORS_ALLOW_CREDENTIALS") == "true":
-    CORS_ALLOW_CREDENTIALS = True
-
-REST_FRAMEWORK = {
-    "NON_FIELD_ERRORS_KEY": "error",
-    "DEFAULT_SCHEMA_CLASS": "rest_framework.schemas.coreapi.AutoSchema",
-}
