@@ -2,6 +2,8 @@ import os
 
 from .base import *
 
+ALLOWED_HOSTS: List[str] = os.getenv("ALLOWED_HOSTS", "").split(",")
+
 DEBUG = True
 
 DATABASES = {
@@ -13,4 +15,22 @@ DATABASES = {
         "HOST": os.environ.get("DATABASE_HOST_POSTGRES"),
         "PORT": os.environ.get("DATABASE_PORT_POSTGRES"),
     }
+}
+
+###############################
+# CUSTOM DEVELOPMENT SETTINGS #
+###############################
+
+CSRF_COOKIE_SECURE = False
+
+allowed_origin_env = os.getenv("CORS_ALLOWED_ORIGINS")
+if allowed_origin_env:
+    CORS_ALLOWED_ORIGINS = allowed_origin_env.split(",")
+
+if os.getenv("CORS_ALLOW_CREDENTIALS") == "true":
+    CORS_ALLOW_CREDENTIALS = True
+
+REST_FRAMEWORK = {
+    "NON_FIELD_ERRORS_KEY": "error",
+    "DEFAULT_SCHEMA_CLASS": "rest_framework.schemas.coreapi.AutoSchema",
 }

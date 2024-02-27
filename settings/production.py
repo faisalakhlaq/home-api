@@ -1,4 +1,4 @@
-import environ
+import environ, os
 
 from .base import *
 
@@ -9,6 +9,10 @@ env = environ.Env(
 
 environ.Env.read_env(os.path.join(BASE_DIR, ".env"))
 DEBUG = env('DEBUG')
+
+ALLOWED_HOSTS = env("ALLOWED_HOSTS")
+if ALLOWED_HOSTS:
+    ALLOWED_HOSTS = ALLOWED_HOSTS.split(",")
 
 DATABASES = {
     "default": {
@@ -22,3 +26,9 @@ DATABASES = {
 }
 
 CORS_ORIGIN_ALLOW_ALL = True
+
+STATIC_URL = '/static/'
+STATICFILES_DIRS = [
+    BASE_DIR / 'staticfiles'
+]
+STATIC_ROOT = BASE_DIR / 'static'
