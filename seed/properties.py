@@ -1,6 +1,36 @@
+import logging
+
+from apps.core.models import Address
 from apps.properties.models import Property
 
 import random
+
+logger = logging.getLogger(__name__)
+
+
+# Generate test data for addresses
+addresses_data = [
+    {
+        'street': 'Street {}'.format(i),
+        'city': 'City {}'.format(i),
+        'region': 'Region {}'.format(i),
+        'postal_code': '12345',
+        'country': 'Country {}'.format(i)
+    }
+    for i in range(1, 21)  # Generate 20 addresses
+]
+
+# Create Address objects
+def create_address(address_data):
+    try:
+        address = Address.objects.create(**address_data)
+        return address
+        # addresses = Address.objects.bulk_create(Address(**data) for data in addresses_data)
+    except Exception as ex:
+        logger.exception(msg=str(ex))
+
+addresses = list(map(create_address, addresses_data))
+logger.info(f"Created Addresses = {addresses}")
 
 # Generate test data for properties
 test_data = [
@@ -18,16 +48,19 @@ test_data = [
         'heating': random.choice(['Gas', 'Electric', 'Oil', 'None']),  # Random heating type
         'outer_walls': random.choice(['Brick', 'Wood', 'Stone', 'Stucco']),  # Random outer walls type
         'roof_type': random.choice(['Flat', 'Pitched', 'Gable', 'Hip']),  # Random roof type
-        'address': 'Address {}'.format(i)  # Sample address
+        'address': addresses[i - 1]  # Associate the property with the corresponding address
     }
     for i in range(1, 21)  # Generate 20 records
 ]
 
 # Create Property objects
-for data in test_data:
+def create_property(property_data):
     try:
-        Property.objects.create(**data)
+        return Property.objects.create(**property_data)
     except Exception as ex:
-        pass
+        logger.exception(msg=str(ex))
+
+properties = list(map(create_property, test_data))
+logger.info(f"Created properties = {properties}")
 
 print("Test data created successfully!")
