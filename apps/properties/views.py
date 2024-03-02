@@ -2,14 +2,15 @@ from rest_framework.viewsets import ModelViewSet
 from rest_framework.permissions import AllowAny
 
 from apps.properties.models import Property
-from apps.properties.serializers import PropertySerialzier
+from apps.properties.serializers import PropertySerializer
 
 
-class PropertyViewSet(ModelViewSet):
+class PropertyViewSet(ModelViewSet[Property]):
     """CRUD API for properties.
 
-    POST Payload:
-    {
+    POST Payload
+    ------------
+    >>> {
         "price": 10,
         "price_currency": "EUR",
         "area": 10,
@@ -26,7 +27,7 @@ class PropertyViewSet(ModelViewSet):
         "address": {},
         "property_images": {}
     }
-    Address payload within properties POST:
+    >>> Address payload within properties POST:
     {
         "street": "Some street, building number, floor 1"
         "city": "City name"
@@ -34,19 +35,52 @@ class PropertyViewSet(ModelViewSet):
         "postal_code": "12345"
         "country": "Country Name"
     }
-    Image payload within properties POST:
+    >>> Image payload within properties POST:
     {
         {
             "title": "Optional",
             "description": "Optional",
             "is_primary": false,
             "image": File,
-        }
-        ............
+        },
+        ............,
         ............
     }
+
+    List Response
+    -------------
+    A list of multiple properties is returned with all the details about each
+    property along with their address details.
+    >>> [
+        {
+            "price": 10,
+            "price_currency": "EUR",
+            "area": 10,
+            "total_area": 12,
+            "measured_area": 11,
+            "total_rooms": 1,
+            "toilets": 1,
+            "construction_year": 1900,
+            "renovation_year": 1950,
+            "total_floors": 1,
+            "heating": "Central heating with one heating unit.",
+            "outer_walls": "Brick",
+            "roof_type": "Tile",
+            "address": {
+                "street": "123",
+                "city": "City name",
+                "region": "Region name",
+                "postal_code": "12345",
+                "country": "Country name",
+            },
+        },
+        ............,
+        ............
+    ]
     """
 
     permission_classes = [AllowAny]
-    serializer_class = PropertySerialzier
-    queryset = Property.objects.all()
+    serializer_class = PropertySerializer
+    queryset = Property.objects.select_related("address").prefetch_related(
+        "property_images"
+    )

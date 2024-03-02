@@ -6,11 +6,11 @@ from django.db import models
 from apps.core.models import Address, TimeTracking
 
 
-def current_year():
+def current_year() -> int:
     return datetime.date.today().year
 
 
-def max_value_current_year(value):
+def max_value_current_year(value: int) -> None:
     return MaxValueValidator(current_year())(value)
 
 

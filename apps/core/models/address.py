@@ -23,7 +23,7 @@ class Address(TimeTracking):
         # not specifying the ordering as it is not improtant here. Also
         # ordering large querysets can be resource-intensive
 
-    def __str__(self):
+    def __str__(self) -> str:
         if self.region:
             return f"{self.street}, {self.city}, {self.region} {self.postal_code}, {self.country}"
         else:

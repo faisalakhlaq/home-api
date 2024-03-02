@@ -11,6 +11,9 @@ import os
 
 from django.core.asgi import get_asgi_application
 
-os.environ.setdefault("DJANGO_SETTINGS_MODULE", "balkan.settings")
+if os.environ.get("DEBUG"):
+    os.environ.setdefault("DJANGO_SETTINGS_MODULE", "settings.development")
+else:
+    os.environ.setdefault("DJANGO_SETTINGS_MODULE", "settings.production")
 
 application = get_asgi_application()
