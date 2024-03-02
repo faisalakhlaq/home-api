@@ -2,7 +2,7 @@ import os
 
 from .base import *
 
-ALLOWED_HOSTS: List[str] = os.getenv("ALLOWED_HOSTS", "").split(",")
+ALLOWED_HOSTS = os.getenv("ALLOWED_HOSTS", "").split(",")
 
 DEBUG = True
 
