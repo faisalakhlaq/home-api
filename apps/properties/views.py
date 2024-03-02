@@ -5,7 +5,7 @@ from apps.properties.models import Property
 from apps.properties.serializers import PropertySerializer
 
 
-class PropertyViewSet(ModelViewSet[Property]):
+class PropertyViewSet(ModelViewSet):  # type: ignore
     """CRUD API for properties.
 
     POST Payload
@@ -79,8 +79,8 @@ class PropertyViewSet(ModelViewSet[Property]):
     ]
     """
 
-    permission_classes = [AllowAny]
-    serializer_class = PropertySerializer
     queryset = Property.objects.select_related("address").prefetch_related(
         "property_images"
     )
+    serializer_class = PropertySerializer
+    permission_classes = [AllowAny]
