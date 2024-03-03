@@ -1,8 +1,14 @@
-from rest_framework.viewsets import ModelViewSet
-from rest_framework.permissions import AllowAny
+from typing import Type, TypeVar
 
-from apps.properties.models import Property
-from apps.properties.serializers import PropertySerializer
+from django.db.models import Prefetch, QuerySet
+
+from rest_framework.permissions import AllowAny
+from rest_framework.serializers import BaseSerializer
+from rest_framework.viewsets import ModelViewSet
+
+from apps.core.models import Address
+from apps.properties.models import Property, PropertyImage
+from apps.properties.serializers import PropertyListSerializer, PropertySerializer
 
 
 class PropertyViewSet(ModelViewSet):  # type: ignore
@@ -53,34 +59,51 @@ class PropertyViewSet(ModelViewSet):  # type: ignore
     property along with their address details.
     >>> [
         {
-            "price": 10,
-            "price_currency": "EUR",
-            "area": 10,
-            "total_area": 12,
-            "measured_area": 11,
-            "total_rooms": 1,
-            "toilets": 1,
-            "construction_year": 1900,
-            "renovation_year": 1950,
-            "total_floors": 1,
-            "heating": "Central heating with one heating unit.",
-            "outer_walls": "Brick",
-            "roof_type": "Tile",
-            "address": {
-                "street": "123",
-                "city": "City name",
-                "region": "Region name",
-                "postal_code": "12345",
-                "country": "Country name",
+            type,
+            created_at,
+            images,
+            price,
+            address:{
+                zip_code,
+                street,
+                city,
             },
+            currency,
         },
         ............,
         ............
     ]
     """
 
-    queryset = Property.objects.select_related("address").prefetch_related(
-        "property_images"
-    )
     serializer_class = PropertySerializer
     permission_classes = [AllowAny]
+
+    _MT_co = TypeVar("_MT_co", covariant=True)
+
+    def get_queryset(self) -> QuerySet[Property]:
+        if self.action == "list":
+            return Property.objects.prefetch_related(
+                Prefetch(
+                    "property_images",
+                    queryset=PropertyImage.objects.only("image"),
+                ),
+                Prefetch(
+                    "address",
+                    queryset=Address.objects.only("postal_code", "street", "city"),
+                ),
+            ).only(
+                "created_at",
+                "price",
+                "price_currency",
+                "address",
+            )
+        else:
+            return Property.objects.select_related("address").prefetch_related(
+                "property_images"
+            )
+
+    def get_serializer_class(self) -> Type[BaseSerializer[_MT_co]]:
+        if self.action == "list":
+            return PropertyListSerializer
+        else:
+            return PropertySerializer

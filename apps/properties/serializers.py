@@ -14,15 +14,31 @@ class AddressSerializer(ModelSerializer[Address]):
         fields = "__all__"
 
 
+class PropertyListAddressSerializer(ModelSerializer[Address]):
+    class Meta:
+        model = Address
+        fields = [
+            "postal_code",
+            "street",
+            "city",
+        ]
+
+
 class PropertyImageSerializer(ModelSerializer[PropertyImage]):
     class Meta:
         model = PropertyImage
         fields = ["title", "description", "is_primary", "image"]
 
 
+class PropertyPrimaryImageSerialzier(ModelSerializer[PropertyImage]):
+    class Meta:
+        model = PropertyImage
+        fields = ("image",)
+
+
 class PropertySerializer(ModelSerializer[Property]):
     address = AddressSerializer()
-    property_images = PropertyImageSerializer(many=True)
+    property_images = PropertyImageSerializer(many=True, required=False)
 
     class Meta:
         model = Property
@@ -53,3 +69,18 @@ class PropertySerializer(ModelSerializer[Property]):
             PropertyImage.objects.bulk_create(property_images)
 
         return property_instance
+
+
+class PropertyListSerializer(ModelSerializer[Property]):
+    address = PropertyListAddressSerializer(read_only=True)
+    images = PropertyPrimaryImageSerialzier(read_only=True)
+
+    class Meta:
+        model = Property
+        fields = [
+            "created_at",
+            "price",
+            "price_currency",
+            "address",
+            "images",
+        ]
