@@ -2,7 +2,7 @@ from typing import Any, Dict
 
 from django.db import transaction
 
-from rest_framework.serializers import ModelSerializer
+from rest_framework.serializers import CharField, ModelSerializer
 
 from apps.core.models import Address
 from apps.properties.models import Property, PropertyImage
@@ -74,6 +74,7 @@ class PropertySerializer(ModelSerializer[Property]):
 class PropertyListSerializer(ModelSerializer[Property]):
     address = PropertyListAddressSerializer(read_only=True)
     images = PropertyPrimaryImageSerialzier(read_only=True)
+    type = CharField(source="type.name", default="", read_only=True)
 
     class Meta:
         model = Property

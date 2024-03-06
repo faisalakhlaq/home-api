@@ -83,23 +83,27 @@ class PropertyViewSet(ModelViewSet):  # type: ignore
 
     def get_queryset(self) -> QuerySet[Property]:
         if self.action == "list":
-            return Property.objects.prefetch_related(
-                Prefetch(
-                    "property_images",
-                    queryset=PropertyImage.objects.only("image"),
-                ),
-                Prefetch(
+            return (
+                Property.objects.select_related("type")
+                .prefetch_related(
+                    Prefetch(
+                        "property_images",
+                        queryset=PropertyImage.objects.only("image"),
+                    ),
+                    Prefetch(
+                        "address",
+                        queryset=Address.objects.only("postal_code", "street", "city"),
+                    ),
+                )
+                .only(
+                    "id",
+                    "type",
+                    "description",
+                    "created_at",
+                    "price",
+                    "price_currency",
                     "address",
-                    queryset=Address.objects.only("postal_code", "street", "city"),
-                ),
-            ).only(
-                "id",
-                "type",
-                "description",
-                "created_at",
-                "price",
-                "price_currency",
-                "address",
+                )
             )
         else:
             return Property.objects.select_related("address").prefetch_related(
