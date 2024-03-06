@@ -59,6 +59,7 @@ class PropertyViewSet(ModelViewSet):  # type: ignore
     property along with their address details.
     >>> [
         {
+            id,
             type,
             created_at,
             images,
@@ -92,6 +93,7 @@ class PropertyViewSet(ModelViewSet):  # type: ignore
                     queryset=Address.objects.only("postal_code", "street", "city"),
                 ),
             ).only(
+                "id",
                 "created_at",
                 "price",
                 "price_currency",
