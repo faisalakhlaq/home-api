@@ -32,7 +32,7 @@ class GenreAdmin(admin.ModelAdmin):
 class AddressAdmin(admin.ModelAdmin):
     list_display = ["id", "street", "city", "region", "postal_code", "country"]
     list_editable = ["street", "city", "region", "postal_code", "country"]
-    list_filter = ["active"]
+    list_filter = ["country"]
     search_fields = [
         "id",
         "name",

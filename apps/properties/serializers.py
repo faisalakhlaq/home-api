@@ -79,6 +79,8 @@ class PropertyListSerializer(ModelSerializer[Property]):
         model = Property
         fields = [
             "id",
+            "type",
+            "description",
             "created_at",
             "price",
             "price_currency",

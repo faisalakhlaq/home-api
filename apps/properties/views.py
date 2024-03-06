@@ -94,6 +94,8 @@ class PropertyViewSet(ModelViewSet):  # type: ignore
                 ),
             ).only(
                 "id",
+                "type",
+                "description",
                 "created_at",
                 "price",
                 "price_currency",
