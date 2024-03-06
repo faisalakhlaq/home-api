@@ -78,6 +78,7 @@ class PropertyListSerializer(ModelSerializer[Property]):
     class Meta:
         model = Property
         fields = [
+            "id",
             "created_at",
             "price",
             "price_currency",

@@ -3,7 +3,7 @@ import datetime
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 
-from apps.core.models import Address, TimeTracking
+from apps.core.models import Address, Genre, Status, TimeTracking
 
 
 def current_year() -> int:
@@ -80,11 +80,28 @@ class Property(TimeTracking):
     )
     outer_walls = models.CharField(max_length=255, blank=True, help_text="e.g. Brick.")
     roof_type = models.CharField(max_length=255, blank=True, help_text="e.g. Tile.")
+    description = models.TextField(blank=True)
     address = models.ForeignKey(
         Address,
         on_delete=models.RESTRICT,
         related_name="address_properties",
         help_text="Address of the property.",
+    )
+    type = models.ForeignKey(
+        Genre,
+        on_delete=models.RESTRICT,
+        related_name="genre_properties",
+        help_text="Type | Genre of the property.",
+        blank=True,
+        null=True,
+    )
+    status = models.ForeignKey(
+        Status,
+        on_delete=models.RESTRICT,
+        related_name="status_properties",
+        help_text="Status of the property.",
+        blank=True,
+        null=True,
     )
 
     class Meta:
