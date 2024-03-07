@@ -1,5 +1,7 @@
 from typing import Type, TypeVar
 
+from django_filters import rest_framework as filters
+
 from django.db.models import Prefetch, QuerySet
 
 from rest_framework.permissions import AllowAny
@@ -9,6 +11,25 @@ from rest_framework.viewsets import ModelViewSet
 from apps.core.models import Address
 from apps.properties.models import Property, PropertyImage
 from apps.properties.serializers import PropertyListSerializer, PropertySerializer
+
+
+class PropertyFilter(filters.FilterSet):  # type: ignore
+    """Filtering for `Property` objects.
+
+    city: {baseurl}/api/v1/properties/properties/?city=New+York
+    genre: ={baseurl}/api/v1/properties/properties/?genre=1
+    type: ={baseurl}/api/v1/properties/properties/?type=Townhouse
+    country: ={baseurl}/api/v1/properties/properties/?country=MyCountry
+    """
+
+    city = filters.CharFilter(field_name="address__city", lookup_expr="iexact")
+    country = filters.CharFilter(field_name="address__country", lookup_expr="iexact")
+    type = filters.CharFilter(field_name="type__name", lookup_expr="iexact")
+    genre = filters.NumberFilter(field_name="type", lookup_expr="exact")
+
+    class Meta:
+        model = Property
+        fields = ("total_rooms",)
 
 
 class PropertyViewSet(ModelViewSet):  # type: ignore
@@ -74,10 +95,21 @@ class PropertyViewSet(ModelViewSet):  # type: ignore
         ............,
         ............
     ]
+
+    Filtering
+    ---------
+    Properties API supports filtering for following fields:
+    1. total_rooms
+    2. genre: genre is same as type but it works with ids e.g. genre=1 will
+    return all all `Property` objects that have type=1
+    3. type: type works with the string types
+    4. city
+    5. country
     """
 
-    serializer_class = PropertySerializer
     permission_classes = [AllowAny]
+    filter_backends = (filters.DjangoFilterBackend,)
+    filterset_class = PropertyFilter
 
     _MT_co = TypeVar("_MT_co", covariant=True)
 
