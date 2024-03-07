@@ -17,9 +17,13 @@ class PropertyFilter(filters.FilterSet):  # type: ignore
     """Filtering for `Property` objects.
 
     city: {baseurl}/api/v1/properties/properties/?city=New+York
-    genre: ={baseurl}/api/v1/properties/properties/?genre=1
-    type: ={baseurl}/api/v1/properties/properties/?type=Townhouse
-    country: ={baseurl}/api/v1/properties/properties/?country=MyCountry
+    genre: {baseurl}/api/v1/properties/properties/?genre=1
+    type: {baseurl}/api/v1/properties/properties/?type=Townhouse
+    country: {baseurl}/api/v1/properties/properties/?country=MyCountry
+    min_price: {baseurl}/api/v1/properties/properties/?min_price=12
+    max_price: {baseurl}/api/v1/properties/properties/?max_price=23
+    min_area: {baseurl}/api/v1/properties/properties/?min_area=1234
+    max_area: {baseurl}/api/v1/properties/properties/?max_area=1234
     """
 
     city = filters.CharFilter(field_name="address__city", lookup_expr="iexact")
