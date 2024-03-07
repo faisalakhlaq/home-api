@@ -26,6 +26,10 @@ class PropertyFilter(filters.FilterSet):  # type: ignore
     country = filters.CharFilter(field_name="address__country", lookup_expr="iexact")
     type = filters.CharFilter(field_name="type__name", lookup_expr="iexact")
     genre = filters.NumberFilter(field_name="type", lookup_expr="exact")
+    min_price = filters.NumberFilter(field_name="price", lookup_expr="gte")
+    max_price = filters.NumberFilter(field_name="price", lookup_expr="lte")
+    min_area = filters.NumberFilter(field_name="area", lookup_expr="gte")
+    max_area = filters.NumberFilter(field_name="area", lookup_expr="lte")
 
     class Meta:
         model = Property
