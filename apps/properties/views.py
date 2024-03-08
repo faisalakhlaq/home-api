@@ -13,6 +13,14 @@ from apps.properties.models import Property, PropertyImage
 from apps.properties.serializers import PropertyListSerializer, PropertySerializer
 
 
+class NumberInFilter(filters.BaseInFilter, filters.NumberFilter):  # type: ignore
+    pass
+
+
+class CharInFilter(filters.BaseInFilter, filters.CharFilter):
+    pass
+
+
 class PropertyFilter(filters.FilterSet):  # type: ignore
     """Filtering for `Property` objects.
 
@@ -28,8 +36,8 @@ class PropertyFilter(filters.FilterSet):  # type: ignore
 
     city = filters.CharFilter(field_name="address__city", lookup_expr="iexact")
     country = filters.CharFilter(field_name="address__country", lookup_expr="iexact")
-    type = filters.CharFilter(field_name="type__name", lookup_expr="iexact")
-    genre = filters.NumberFilter(field_name="type", lookup_expr="exact")
+    type = CharInFilter(field_name="type__name", lookup_expr="in")
+    genre = NumberInFilter(field_name="type", lookup_expr="in")
     min_price = filters.NumberFilter(field_name="price", lookup_expr="gte")
     max_price = filters.NumberFilter(field_name="price", lookup_expr="lte")
     min_area = filters.NumberFilter(field_name="area", lookup_expr="gte")
