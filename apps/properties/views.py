@@ -1,11 +1,14 @@
-from typing import Type, TypeVar
+from typing import Any, Type, TypeVar
 
 from django_filters import rest_framework as filters
 
 from django.db.models import Prefetch, QuerySet
 
 from rest_framework.permissions import AllowAny
+from rest_framework.response import Response
+from rest_framework.request import Request
 from rest_framework.serializers import BaseSerializer
+from rest_framework.status import HTTP_405_METHOD_NOT_ALLOWED
 from rest_framework.viewsets import ModelViewSet
 
 from apps.core.models import Address
@@ -17,7 +20,7 @@ class NumberInFilter(filters.BaseInFilter, filters.NumberFilter):  # type: ignor
     pass
 
 
-class CharInFilter(filters.BaseInFilter, filters.CharFilter):
+class CharInFilter(filters.BaseInFilter, filters.CharFilter):  # type: ignore
     pass
 
 
@@ -163,3 +166,10 @@ class PropertyViewSet(ModelViewSet):  # type: ignore
             return PropertyListSerializer
         else:
             return PropertySerializer
+
+    def destroy(self, request: Request, *args: Any, **kwargs: Any) -> Response:
+        """Delete operation on the `Property` is not allowed."""
+        return Response(
+            {"error": "`Property` deletion is not allowed."},
+            status=HTTP_405_METHOD_NOT_ALLOWED,
+        )
