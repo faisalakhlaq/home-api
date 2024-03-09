@@ -37,6 +37,7 @@ class PropertyPrimaryImageSerialzier(ModelSerializer[PropertyImage]):
 
 
 class PropertySerializer(ModelSerializer[Property]):
+    type = CharField(source="type.name", default="")
     address = AddressSerializer()
     property_images = PropertyImageSerializer(many=True, required=False)
 
@@ -47,7 +48,7 @@ class PropertySerializer(ModelSerializer[Property]):
     @transaction.atomic()
     def create(self, validated_data: Dict[str, Any]) -> Property:
         address_data = validated_data.pop("address")
-        property_images_data = validated_data.pop("property_images")
+        property_images_data = validated_data.pop("property_images", [])
 
         address_ser = AddressSerializer(data=address_data)
         if address_ser.is_valid(raise_exception=True):
