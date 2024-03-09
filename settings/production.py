@@ -31,7 +31,7 @@ CORS_ORIGIN_ALLOW_ALL = True
 
 STATIC_URL = "/static/"
 STATICFILES_DIRS = [BASE_DIR / "staticfiles"]
-STATIC_ROOT = BASE_DIR / "static"  # type: ignore
+STATIC_ROOT = BASE_DIR / "static"
 
 REST_FRAMEWORK = {
     "NON_FIELD_ERRORS_KEY": "error",
