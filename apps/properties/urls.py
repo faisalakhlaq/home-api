@@ -6,6 +6,6 @@ app_name = "apps.properties"
 
 router = DefaultRouter()
 
-router.register("properties", PropertyViewSet, basename="'properties'")
+router.register("properties", PropertyViewSet, basename="properties")
 
 urlpatterns = router.urls

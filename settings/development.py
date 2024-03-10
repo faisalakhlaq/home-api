@@ -29,8 +29,3 @@ if allowed_origin_env:
 
 if os.getenv("CORS_ALLOW_CREDENTIALS") == "true":
     CORS_ALLOW_CREDENTIALS = True
-
-REST_FRAMEWORK = {
-    "NON_FIELD_ERRORS_KEY": "error",
-    "DEFAULT_SCHEMA_CLASS": "rest_framework.schemas.coreapi.AutoSchema",
-}

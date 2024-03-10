@@ -100,3 +100,11 @@ STATIC_ROOT = BASE_DIR / "static/"
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+
+REST_FRAMEWORK = {
+    # 3.0 gives you the option to serialize decimals as floats.
+    # if COERCE_DECIMAL_TO_STRING then the decimals are serialized as strings.
+    "COERCE_DECIMAL_TO_STRING": False,
+    "NON_FIELD_ERRORS_KEY": "error",
+    "DEFAULT_SCHEMA_CLASS": "rest_framework.schemas.coreapi.AutoSchema",
+}
