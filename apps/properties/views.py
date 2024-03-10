@@ -13,7 +13,11 @@ from rest_framework.viewsets import ModelViewSet
 
 from apps.core.models import Address
 from apps.properties.models import Property, PropertyImage
-from apps.properties.serializers import PropertyListSerializer, PropertySerializer
+from apps.properties.serializers import (
+    PropertyDetailSerializer,
+    PropertyListSerializer,
+    PropertySerializer,
+)
 
 
 class NumberInFilter(filters.BaseInFilter, filters.NumberFilter):  # type: ignore
@@ -27,14 +31,15 @@ class CharInFilter(filters.BaseInFilter, filters.CharFilter):  # type: ignore
 class PropertyFilter(filters.FilterSet):  # type: ignore
     """Filtering for `Property` objects.
 
-    city: {baseurl}/api/v1/properties/properties/?city=New+York
-    genre: {baseurl}/api/v1/properties/properties/?genre=1
-    type: {baseurl}/api/v1/properties/properties/?type=Townhouse
-    country: {baseurl}/api/v1/properties/properties/?country=MyCountry
-    min_price: {baseurl}/api/v1/properties/properties/?min_price=12
-    max_price: {baseurl}/api/v1/properties/properties/?max_price=23
-    min_area: {baseurl}/api/v1/properties/properties/?min_area=1234
-    max_area: {baseurl}/api/v1/properties/properties/?max_area=1234
+    * city: {baseurl}/api/v1/properties/properties/?city=New+York
+    * genre: {baseurl}/api/v1/properties/properties/?genre=1
+    * type: {baseurl}/api/v1/properties/properties/?type=Townhouse
+    * country: {baseurl}/api/v1/properties/properties/?country=MyCountry
+    * min_price: {baseurl}/api/v1/properties/properties/?min_price=12
+    * max_price: {baseurl}/api/v1/properties/properties/?max_price=23
+    * min_area: {baseurl}/api/v1/properties/properties/?min_area=1234
+    * max_area: {baseurl}/api/v1/properties/properties/?max_area=1234
+    * total_rooms:
     """
 
     city = filters.CharFilter(field_name="address__city", lookup_expr="iexact")
@@ -71,7 +76,7 @@ class PropertyViewSet(ModelViewSet):  # type: ignore
         "outer_walls": "Brick",
         "roof_type": "Tile",
         "address": {},
-        "property_images": {}
+        "property_images": []
     }
     >>> Address payload within properties POST:
     {
@@ -81,8 +86,8 @@ class PropertyViewSet(ModelViewSet):  # type: ignore
         "postal_code": "12345"
         "country": "Country Name"
     }
-    >>> Image payload within properties POST:
-    {
+    >>> Images payload within properties POST:
+    [
         {
             "title": "Optional",
             "description": "Optional",
@@ -91,7 +96,7 @@ class PropertyViewSet(ModelViewSet):  # type: ignore
         },
         ............,
         ............
-    }
+    ]
 
     List Response
     -------------
@@ -124,6 +129,10 @@ class PropertyViewSet(ModelViewSet):  # type: ignore
     3. type: type works with the string types
     4. city
     5. country
+    6. min_price
+    7. max_price
+    8. min_area
+    9. max_area
     """
 
     permission_classes = [AllowAny]
@@ -164,6 +173,8 @@ class PropertyViewSet(ModelViewSet):  # type: ignore
     def get_serializer_class(self) -> Type[BaseSerializer[_MT_co]]:
         if self.action == "list":
             return PropertyListSerializer
+        elif self.action == "retrieve":
+            return PropertyDetailSerializer
         else:
             return PropertySerializer
 
