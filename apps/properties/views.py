@@ -4,14 +4,16 @@ from django_filters import rest_framework as filters
 
 from django.db.models import Prefetch, QuerySet
 
+from rest_framework.decorators import action
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework.request import Request
 from rest_framework.serializers import BaseSerializer
-from rest_framework.status import HTTP_405_METHOD_NOT_ALLOWED
+from rest_framework.status import HTTP_200_OK, HTTP_405_METHOD_NOT_ALLOWED
 from rest_framework.viewsets import ModelViewSet
 
-from apps.core.models import Address
+from apps.core.models import Address, City, Genre, Status
+from apps.core.serializers import IdCodeListSerializer
 from apps.properties.models import Property, PropertyImage
 from apps.properties.serializers import (
     PropertyDetailSerializer,
@@ -58,6 +60,9 @@ class PropertyFilter(filters.FilterSet):  # type: ignore
 
 class PropertyViewSet(ModelViewSet):  # type: ignore
     """CRUD API for properties.
+
+    The viewset contains following extra actions:
+    * get-create-property-form-data
 
     POST Payload
     ------------
@@ -133,6 +138,14 @@ class PropertyViewSet(ModelViewSet):  # type: ignore
     7. max_price
     8. min_area
     9. max_area
+
+    get-create-property-form-data
+    -----------------------------
+    A get call that returns the data for filling the `Property` form. Returned
+    data includes:
+    1. Genre List[Dict[int, str]]: A list containing valid `Type` [[id, name]]
+    2. City List[str]: A list of cities to select from.
+    3. Status List[Dict[int, str]]: List containig valid `Status` [{id, name}]
     """
 
     permission_classes = [AllowAny]
@@ -165,6 +178,11 @@ class PropertyViewSet(ModelViewSet):  # type: ignore
                     "address",
                 )
             )
+        elif self.action in [
+            "get-create-property-form-data",
+            "get_create_property_form_data",
+        ]:
+            return None
         else:
             return Property.objects.select_related("address").prefetch_related(
                 "property_images"
@@ -184,3 +202,23 @@ class PropertyViewSet(ModelViewSet):  # type: ignore
             {"error": "`Property` deletion is not allowed."},
             status=HTTP_405_METHOD_NOT_ALLOWED,
         )
+
+    @action(detail=False, methods=["GET"], url_name="get-create-property-form-data")
+    def get_create_property_form_data(
+        self, request: Request, *args: None, **kwargs: None
+    ) -> Response:
+        """Returns the data to help create a `Property`."""
+        genre_serializer = IdCodeListSerializer(
+            Genre.objects.only("id", "name").order_by("name").values("id", "name"),
+            many=True,
+        )
+        status_serializer = IdCodeListSerializer(
+            Status.objects.only("id", "name").order_by("name").values("id", "name"),
+            many=True,
+        )
+        data = {
+            "types": genre_serializer.data,
+            "status": status_serializer.data,
+            "cities": City.objects.only("name").values_list("name", flat=True),
+        }
+        return Response(data=data, status=HTTP_200_OK)

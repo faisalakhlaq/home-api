@@ -16,6 +16,10 @@ class TestPropertyAPI(TestCase):
         super().setUp()
         self.list_url: str = reverse("apps.properties:properties-list")
         self.detail_url: str = "apps.properties:properties-detail"
+        self.property_form: str = reverse(
+            "apps.properties:properties-get-create-property-form-data"
+        )
+
         self.property_payload = {
             "price": "50000",
             "price_currency": "Euro",
@@ -107,6 +111,17 @@ class TestPropertyAPI(TestCase):
         self.assertEqual(res.data["price"], 50000)
         self.assertEqual(res.data["price_currency"], "Euro")
         prop.delete()
+
+    # def test_get_create_property_form_data(self)->None:
+    #   res = self.client.get(self.property_form)
+    #   self.assertEqual(res.status_code, 200)
+    #   genre_serializer = IdCodeListSerializer(
+    #   Genre.objects.only('id', 'name').order_by('name').values('id', 'name'), many=True)
+    #   status_serializer = IdCodeListSerializer(
+    #   Status.objects.only('id', 'name').order_by('name').values('id', 'name'), many=True)
+    #   self.assertEqual(res.data['types'], genre_serializer.data)
+    #   self.assertEqual(res.data['status'], status_serializer.data)
+    #   self.assertEqual(res.data['cities'], City.objects.only('name').values_list('name', flat=True))
 
     def tearDown(self) -> None:
         return super().tearDown()
