@@ -20,7 +20,22 @@ collectstatic: ## Generate Django static files
 	python manage.py collectstatic;
 
 seed: ## Seed the database
-	cat seed/local.py | python manage.py shell;
+	make seed_genre;
+	make seed_city;
+	make seed_status;
+	make seed_properties;
+
+seed_genre:
+	cat seed/genre.py | python manage.py shell;
+
+seed_city:
+	cat seed/city.py | python manage.py shell;
+
+seed_status:
+	cat seed/status.py | python manage.py shell;
+
+seed_properties:
+	cat seed/properties.py | python manage.py shell;
 
 run_dev: ## Run the DEV server
 	gunicorn --bind 0.0.0.0:8000 --reload balkan.wsgi --timeout 100000;
