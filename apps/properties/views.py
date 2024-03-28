@@ -13,7 +13,7 @@ from rest_framework.status import HTTP_200_OK, HTTP_405_METHOD_NOT_ALLOWED
 from rest_framework.viewsets import ModelViewSet
 
 from apps.core.models import Address, City, Genre, Status
-from apps.core.serializers import IdCodeListSerializer
+from apps.core.serializers import IdNameListSerializer
 from apps.properties.models import Property, PropertyImage
 from apps.properties.serializers import (
     PropertyDetailSerializer,
@@ -208,11 +208,11 @@ class PropertyViewSet(ModelViewSet):  # type: ignore
         self, request: Request, *args: None, **kwargs: None
     ) -> Response:
         """Returns the data to help create a `Property`."""
-        genre_serializer = IdCodeListSerializer(
+        genre_serializer = IdNameListSerializer(
             Genre.objects.only("id", "name").order_by("name").values("id", "name"),
             many=True,
         )
-        status_serializer = IdCodeListSerializer(
+        status_serializer = IdNameListSerializer(
             Status.objects.only("id", "name").order_by("name").values("id", "name"),
             many=True,
         )

@@ -1,4 +1,5 @@
 import logging
+from random import choice
 from typing import Any, Dict, Optional
 
 from django.contrib.contenttypes.models import ContentType
@@ -113,3 +114,6 @@ property_status_data = [
 ]
 
 list(map(create_status, property_status_data))
+
+def create_test_status()->Status:
+    return create_status(choice(property_status_data))

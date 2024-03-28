@@ -7,7 +7,7 @@ from rest_framework.serializers import (
 )
 
 
-class IdCodeListSerializer(BaseSerializer[Any]):
+class IdNameListSerializer(BaseSerializer[Any]):
     """Serialize two field of types (integer, char)."""
 
     id = IntegerField
