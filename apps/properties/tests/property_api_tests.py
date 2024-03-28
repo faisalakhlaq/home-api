@@ -113,15 +113,22 @@ class TestPropertyAPI(TestCase):
         prop.delete()
 
     # def test_get_create_property_form_data(self)->None:
-    #   res = self.client.get(self.property_form)
-    #   self.assertEqual(res.status_code, 200)
-    #   genre_serializer = IdCodeListSerializer(
-    #   Genre.objects.only('id', 'name').order_by('name').values('id', 'name'), many=True)
-    #   status_serializer = IdCodeListSerializer(
-    #   Status.objects.only('id', 'name').order_by('name').values('id', 'name'), many=True)
-    #   self.assertEqual(res.data['types'], genre_serializer.data)
-    #   self.assertEqual(res.data['status'], status_serializer.data)
-    #   self.assertEqual(res.data['cities'], City.objects.only('name').values_list('name', flat=True))
+    #     # create related objects
+    #     status = create_test_status()
+    #     genre = create_test_genre()
+    #     cities = create_cities()
+    #     res = self.client.get(self.property_form)
+    #     self.assertEqual(res.status_code, 200)
+    #     genre_serializer = IdNameListSerializer(
+    #     Genre.objects.only('id', 'name').order_by('name').values('id', 'name'), many=True)
+    #     status_serializer = IdNameListSerializer(
+    #     Status.objects.only('id', 'name').order_by('name').values('id', 'name'), many=True)
+    #     self.assertEqual(res.data['types'], genre_serializer.data)
+    #     self.assertEqual(res.data['status'], status_serializer.data)
+    #     self.assertEqual(res.data['cities'], City.objects.only('name').values_list('name', flat=True))
+    #     status.delete()    
+    #     genre.delete()
+    #     City.objects.filter(id__in=[ci.id for ci in cities]).delete()
 
     def tearDown(self) -> None:
         return super().tearDown()

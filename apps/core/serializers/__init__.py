@@ -1,8 +1,8 @@
 from .address import AddressSerializer, PropertyListAddressSerializer
-from .id_code_list import IdCodeListSerializer
+from .id_name_list import IdNameListSerializer
 
 __all__ = [
     "AddressSerializer",
-    "IdCodeListSerializer",
+    "IdNameListSerializer",
     "PropertyListAddressSerializer",
 ]

@@ -1,4 +1,5 @@
 import logging
+from random import choice
 from typing import Any, Dict, Optional
 
 from django.contrib.contenttypes.models import ContentType
@@ -8,7 +9,7 @@ from apps.core.models import Genre
 logger = logging.getLogger(__name__)
 
 
-def create_status(genre: Dict[str, Any]) -> Optional[Genre]:
+def create_genre(genre: Dict[str, Any]) -> Optional[Genre]:
     try:
         return Genre.objects.create(**genre)
     except Exception as ex:
@@ -116,4 +117,7 @@ property_genre_data = [
     },
 ]
 
-list(map(create_status, property_genre_data))
+list(map(create_genre, property_genre_data))
+
+def create_test_genre()->Genre:
+    return create_genre(choice(property_genre_data))
