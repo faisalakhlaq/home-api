@@ -119,5 +119,6 @@ property_genre_data = [
 
 list(map(create_genre, property_genre_data))
 
-def create_test_genre()->Genre:
+
+def create_test_genre() -> Optional[Genre]:
     return create_genre(choice(property_genre_data))
