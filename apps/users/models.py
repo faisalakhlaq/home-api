@@ -43,6 +43,3 @@ class User(AbstractUser):
         help_text="""Every company registerd as a business customer requires
         an admin. Only the company admin can add users to the company.""",
     )
-
-    class Meta:
-        db_table = "auth_user"
