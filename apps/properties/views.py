@@ -182,7 +182,7 @@ class PropertyViewSet(ModelViewSet):  # type: ignore
             "get-create-property-form-data",
             "get_create_property_form_data",
         ]:
-            return None
+            return Property.objects.all()
         else:
             return Property.objects.select_related("address").prefetch_related(
                 "property_images"

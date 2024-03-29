@@ -1,6 +1,6 @@
 import logging
 from random import choice
-from typing import List
+from typing import List, Optional
 
 from apps.core.models import City
 
@@ -96,8 +96,10 @@ def create_city(city: str) -> City | None:
 
 created_cities = list(map(create_city, macedonia_cities))
 
-def create_test_city()->City:
+
+def create_test_city() -> Optional[City]:
     return create_city(choice(macedonia_cities))
 
-def create_cities()->List[City]:
+
+def create_cities() -> List[City | None]:
     return list(map(create_city, macedonia_cities))

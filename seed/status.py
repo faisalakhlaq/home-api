@@ -115,5 +115,6 @@ property_status_data = [
 
 list(map(create_status, property_status_data))
 
-def create_test_status()->Status:
+
+def create_test_status() -> Optional[Status]:
     return create_status(choice(property_status_data))

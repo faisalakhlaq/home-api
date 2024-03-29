@@ -14,6 +14,7 @@ THIRD_PARTY_APPS: List[str] = [
     "corsheaders",
 ]
 BASE_PROJECT_APPS: List[str] = [
+    "apps.users",
     "apps.core",
     "apps.properties",
 ]
@@ -61,7 +62,7 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = "balkan.wsgi.application"
-
+AUTH_USER_MODEL = "users.User"
 AUTH_PASSWORD_VALIDATORS = [
     {
         "NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator",
