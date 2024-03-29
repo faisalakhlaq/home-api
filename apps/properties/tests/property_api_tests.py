@@ -126,7 +126,7 @@ class TestPropertyAPI(TestCase):
     #     self.assertEqual(res.data['types'], genre_serializer.data)
     #     self.assertEqual(res.data['status'], status_serializer.data)
     #     self.assertEqual(res.data['cities'], City.objects.only('name').values_list('name', flat=True))
-    #     status.delete()    
+    #     status.delete()
     #     genre.delete()
     #     City.objects.filter(id__in=[ci.id for ci in cities]).delete()
 
