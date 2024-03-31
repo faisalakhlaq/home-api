@@ -5,7 +5,7 @@ from django_filters import rest_framework as filters
 from django.db.models import Prefetch, QuerySet
 
 from rest_framework.decorators import action
-from rest_framework.permissions import AllowAny
+from rest_framework.permissions import IsAuthenticatedOrReadOnly
 from rest_framework.response import Response
 from rest_framework.request import Request
 from rest_framework.serializers import BaseSerializer
@@ -148,7 +148,7 @@ class PropertyViewSet(ModelViewSet):  # type: ignore
     3. Status List[Dict[int, str]]: List containig valid `Status` [{id, name}]
     """
 
-    permission_classes = [AllowAny]
+    permission_classes = [IsAuthenticatedOrReadOnly]
     filter_backends = (filters.DjangoFilterBackend,)
     filterset_class = PropertyFilter
 
