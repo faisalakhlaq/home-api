@@ -9,6 +9,10 @@ class CustomUserAdmin(UserAdmin):
     fieldsets = UserAdmin.fieldsets + (
         ("Additional info", {"fields": ("is_business_user", "is_company_admin")}),
     )
+    list_display = UserAdmin.list_display + (
+        "is_business_user",
+        "is_company_admin",
+    )
 
 
 admin.site.register(User, CustomUserAdmin)

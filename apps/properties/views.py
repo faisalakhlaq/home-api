@@ -2,19 +2,23 @@ from typing import Any, Type, TypeVar
 
 from django_filters import rest_framework as filters
 
-from django.db.models import Prefetch, QuerySet
+from django.db.models import QuerySet
 
 from rest_framework.decorators import action
-from rest_framework.permissions import AllowAny
+from rest_framework.permissions import IsAuthenticated, IsAuthenticatedOrReadOnly
 from rest_framework.response import Response
 from rest_framework.request import Request
 from rest_framework.serializers import BaseSerializer
 from rest_framework.status import HTTP_200_OK, HTTP_405_METHOD_NOT_ALLOWED
 from rest_framework.viewsets import ModelViewSet
 
-from apps.core.models import Address, City, Genre, Status
+from apps.core.models import City, Genre, Status
 from apps.core.serializers import IdNameListSerializer
-from apps.properties.models import Property, PropertyImage
+from apps.properties.models import Property
+from apps.properties.querysets import (
+    property_list_queryset,
+    user_favorite_properties_qs,
+)
 from apps.properties.serializers import (
     PropertyDetailSerializer,
     PropertyListSerializer,
@@ -148,7 +152,7 @@ class PropertyViewSet(ModelViewSet):  # type: ignore
     3. Status List[Dict[int, str]]: List containig valid `Status` [{id, name}]
     """
 
-    permission_classes = [AllowAny]
+    permission_classes = [IsAuthenticatedOrReadOnly]
     filter_backends = (filters.DjangoFilterBackend,)
     filterset_class = PropertyFilter
 
@@ -156,33 +160,20 @@ class PropertyViewSet(ModelViewSet):  # type: ignore
 
     def get_queryset(self) -> QuerySet[Property]:
         if self.action == "list":
-            return (
-                Property.objects.select_related("type")
-                .prefetch_related(
-                    Prefetch(
-                        "property_images",
-                        queryset=PropertyImage.objects.only("image"),
-                    ),
-                    Prefetch(
-                        "address",
-                        queryset=Address.objects.only("postal_code", "street", "city"),
-                    ),
-                )
-                .only(
-                    "id",
-                    "type",
-                    "description",
-                    "created_at",
-                    "price",
-                    "price_currency",
-                    "address",
-                )
-            )
+            if self.request.user.is_authenticated:
+                return property_list_queryset(user_id=self.request.user.id)
+            else:
+                return property_list_queryset()
         elif self.action in [
             "get-create-property-form-data",
             "get_create_property_form_data",
         ]:
             return Property.objects.all()
+        elif self.action in [
+            "user_favorite_properties",
+            "user-favorite-properties",
+        ]:
+            return user_favorite_properties_qs(user_id=self.request.user.id)  # type: ignore
         else:
             return Property.objects.select_related("address").prefetch_related(
                 "property_images"
@@ -205,7 +196,7 @@ class PropertyViewSet(ModelViewSet):  # type: ignore
 
     @action(detail=False, methods=["GET"], url_name="get-create-property-form-data")
     def get_create_property_form_data(
-        self, request: Request, *args: None, **kwargs: None
+        self, request: Request, *args: Any, **kwargs: Any
     ) -> Response:
         """Returns the data to help create a `Property`."""
         genre_serializer = IdNameListSerializer(
@@ -222,3 +213,15 @@ class PropertyViewSet(ModelViewSet):  # type: ignore
             "cities": City.objects.only("name").values_list("name", flat=True),
         }
         return Response(data=data, status=HTTP_200_OK)
+
+    @action(
+        detail=False,
+        methods=["GET"],
+        url_name="user-favorite-properties",
+        permission_classes=[IsAuthenticated],
+    )
+    def user_favorite_properties(
+        self, request: Request, *args: Any, **kwargs: Any
+    ) -> Response:
+        serializer = self.get_serializer(self.get_queryset(), many=True)
+        return Response(serializer.data, status=HTTP_200_OK)
