@@ -5,15 +5,22 @@ from django_filters import rest_framework as filters
 from django.db.models import QuerySet
 
 from rest_framework.decorators import action
+from rest_framework.generics import get_object_or_404
 from rest_framework.permissions import IsAuthenticated, IsAuthenticatedOrReadOnly
 from rest_framework.response import Response
 from rest_framework.request import Request
 from rest_framework.serializers import BaseSerializer
-from rest_framework.status import HTTP_200_OK, HTTP_405_METHOD_NOT_ALLOWED
+from rest_framework.status import (
+    HTTP_200_OK,
+    HTTP_204_NO_CONTENT,
+    HTTP_400_BAD_REQUEST,
+    HTTP_405_METHOD_NOT_ALLOWED,
+)
 from rest_framework.viewsets import ModelViewSet
 
 from apps.core.models import City, Genre, Status
 from apps.core.serializers import IdNameListSerializer
+from apps.users.models import UserFavoriteProperty
 from apps.properties.models import Property
 from apps.properties.querysets import (
     property_list_queryset,
@@ -168,19 +175,27 @@ class PropertyViewSet(ModelViewSet):  # type: ignore
             "get-create-property-form-data",
             "get_create_property_form_data",
         ]:
-            return Property.objects.all()
+            return Property.objects.none()
         elif self.action in [
             "user_favorite_properties",
             "user-favorite-properties",
         ]:
             return user_favorite_properties_qs(user_id=self.request.user.id)  # type: ignore
+        elif self.action in ["add-to-favorites", "add_to_favorites"]:
+            return Property.objects.none()
         else:
             return Property.objects.select_related("address").prefetch_related(
                 "property_images"
             )
 
     def get_serializer_class(self) -> Type[BaseSerializer[_MT_co]]:
-        if self.action == "list":
+        if self.action in [
+            "list",
+            "add-to-favorites",
+            "add_to_favorites",
+            "user_favorite_properties",
+            "user-favorite-properties",
+        ]:
             return PropertyListSerializer
         elif self.action == "retrieve":
             return PropertyDetailSerializer
@@ -225,3 +240,49 @@ class PropertyViewSet(ModelViewSet):  # type: ignore
     ) -> Response:
         serializer = self.get_serializer(self.get_queryset(), many=True)
         return Response(serializer.data, status=HTTP_200_OK)
+
+    @action(
+        detail=True,
+        methods=["post"],
+        url_name="add-to-favorites",
+        permission_classes=[IsAuthenticated],
+        name="Add to favorites",
+    )
+    def add_to_favorites(
+        self, request: Request, pk: int, *args: Any, **kwargs: Any
+    ) -> Response:
+        """Add the given property to the user favorite list."""
+        property_obj = get_object_or_404(Property, pk=pk)
+        UserFavoriteProperty.objects.get_or_create(
+            user=request.user, property=property_obj
+        )
+        serializer = self.get_serializer(
+            property_list_queryset(
+                filter=[property_obj.id], user_id=request.user.id  # type: ignore
+            ).first()
+        )
+        return Response(data=serializer.data, status=HTTP_200_OK)
+
+    @action(
+        detail=True,
+        methods=["post"],
+        url_name="remove-from-favorites",
+        permission_classes=[IsAuthenticated],
+        name="Remove from favorites",
+    )
+    def remove_from_favorites(
+        self, request: Request, pk: int, *args: Any, **kwargs: Any
+    ) -> Response:
+        """Remove the given property from the user favorite list."""
+        property_obj = get_object_or_404(Property, pk=pk)
+        favorite_qs = UserFavoriteProperty.objects.filter(  # type: ignore
+            user=request.user, property=property_obj
+        )
+        if not favorite_qs.exists():
+            return Response(
+                data={"error": "The given property is not in user favorites."},
+                status=HTTP_400_BAD_REQUEST,
+            )
+
+        favorite_qs.delete()
+        return Response(status=HTTP_204_NO_CONTENT)
