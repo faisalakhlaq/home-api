@@ -63,14 +63,14 @@ def property_list_queryset(
         Prefetch(
             "favorite_user",
             queryset=UserFavoriteProperty.objects.filter(user=user_id),
-            to_attr="user_favorites",
+            # to_attr="user_favorites",
         )
     )
     # Annotate each property with a boolean indicating whether it's a favorite
     # of the user_id
     return list_qs.annotate(
         is_favorite=Case(
-            When(user_favorites__isnull=False, then=True),
+            When(favorite_user__isnull=False, then=True),
             default=False,
             output_field=BooleanField(),
         )
@@ -78,15 +78,15 @@ def property_list_queryset(
 
 
 def user_favorite_properties_qs(user_id: int) -> QuerySet[Property]:
-    if not user_id:
-        return Property.objects.all()
+    if not user_id or not UserFavoriteProperty.objects.filter(user=user_id).exists():
+        return Property.objects.none()
 
-    list_qs = property_list_queryset()
-    list_qs.prefetch_related(
-        Prefetch(
-            "favorite_user",
-            queryset=UserFavoriteProperty.objects.filter(user=user_id),
-            to_attr="user_favorites",
-        )
+    return property_list_queryset(
+        # convert queryset to list to avoid mypy error
+        filter=list(
+            UserFavoriteProperty.objects.filter(user=user_id).values_list(
+                "property", flat=True
+            )
+        ),
+        user_id=user_id,
     )
-    return list_qs.filter(favorite_user__user=user_id)
