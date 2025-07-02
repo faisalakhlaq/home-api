@@ -17,7 +17,7 @@ class User(AbstractUser):
     * is_business_user (bool) Is the user related to a business customer.
     * is_company_admin (bool) Admin user for the company.
 
-    Inhirited fields
+    Inherited fields
     ----------------
     1. _state (ModelState) It is used to preserve the state of the user.
     2. id (int)	Unique ID for each user.

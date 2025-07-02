@@ -141,7 +141,7 @@ class PropertyViewSet(ModelViewSet):  # type: ignore
     Properties API supports filtering for following fields:
     1. total_rooms
     2. genre: genre is same as type but it works with ids e.g. genre=1 will
-    return all all `Property` objects that have type=1
+    return all the `Property` objects that have type=1
     3. type: type works with the string types
     4. city
     5. country
@@ -167,7 +167,7 @@ class PropertyViewSet(ModelViewSet):  # type: ignore
 
     def get_queryset(self) -> QuerySet[Property]:
         if self.action == "list":
-            if self.request.user.is_authenticated:
+            if hasattr(self.request, "user") and self.request.user.is_authenticated:
                 return property_list_queryset(user_id=self.request.user.id)
             else:
                 return property_list_queryset()
