@@ -246,7 +246,7 @@ def create_address(address_data: Dict[str, Any]) -> Address | None:
 
 
 addresses = list(map(create_address, addresses_data))
-logger.info(f"Created Addresses = {addresses}")
+# logger.info(f"Created Addresses = {addresses}")
 
 # Generate test data for properties
 test_data = [
@@ -298,4 +298,4 @@ def create_property(property_data: Dict[str, Any]) -> Property | None:
 
 
 properties = list(map(create_property, test_data))
-logger.info(f"Created properties = {properties}")
+# logger.info(f"Created properties = {properties}")

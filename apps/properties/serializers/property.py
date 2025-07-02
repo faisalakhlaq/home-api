@@ -35,6 +35,12 @@ class PropertySerializer(ModelSerializer[Property]):
             address_instance = address_ser.save()
             validated_data["address"] = address_instance
 
+        validated_data["owner"] = (
+            self.context.get("request").user  # type: ignore
+            if self.context.get("request")
+            else None
+        )
+
         property_instance = super(PropertySerializer, self).create(validated_data)
 
         if property_images_data:
