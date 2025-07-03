@@ -7,7 +7,6 @@ Balkan API is a Django REST Framework project that serves as the backend for a r
 * CRUD operations for property listings
 * User authentication and authorization
 * Management of user favorite properties
-* (Add other key features like search, image uploads, etc.)
 
 ## Getting Started
 
@@ -17,15 +16,15 @@ These instructions will get you a copy of the project up and running on your loc
 
 * Python 3.x
 * pip (Python package installer)
-* Virtualenv (recommended)
+* Docker (recommended)
 * PostgreSQL (or your chosen database)
 
 ### Installation
 
 1.  **Clone the repository:**
     ```bash
-    git clone [https://github.com/your-username/balkan-api.git](https://github.com/your-username/balkan-api.git)
-    cd balkan-api
+    git clone [git@github.com:faisalakhlaq/home-api.git](git@github.com:faisalakhlaq/home-api.git)
+    cd home-api
     ```
 
 2.  **Create and activate a virtual environment:**
@@ -75,12 +74,9 @@ For detailed API documentation, endpoint specifications, and integration guides,
 
 * [Django](https://www.djangoproject.com/)
 * [Django REST Framework](https://www.django-rest-framework.org/)
-* (Add any other major libraries/technologies)
 
 ## License
 
 This project is licensed under the MIT License - see the [LICENSE.md](LICENSE.md) file for details.
 
 ## Acknowledgments
-
-* (Any acknowledgments)
