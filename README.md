@@ -68,7 +68,7 @@ These instructions will get you a copy of the project up and running on your loc
 
 For detailed API documentation, endpoint specifications, and integration guides, please refer to our official developer documentation:
 
-[**Go to Developer Documentation**](./docs/index.md)
+- [Go to Developer Documentation](./docs/index.md)
 
 ## Built With
 
