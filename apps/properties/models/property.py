@@ -105,16 +105,18 @@ class Property(TimeTracking):
         null=True,
     )
     owner = models.ForeignKey(
-        get_user_model(), 
+        get_user_model(),
         on_delete=models.SET_NULL,
         null=True,
         blank=True,
-        help_text="The user who created the property."
+        help_text="The user who created the property.",
     )
-    
+
     class Meta:
         verbose_name = "Property"
         verbose_name_plural = "Properties"
 
     def __str__(self) -> str:
-        return f"Rooms: {self.total_rooms}, Price={self.price}, Covered area={self.area}"
+        return (
+            f"Rooms: {self.total_rooms}, Price={self.price}, Covered area={self.area}"
+        )
