@@ -8,11 +8,11 @@ The Properties API allows managing real estate listings, including:
 - [Updating]()
 - [Fetch user favorite properties](#fetch-user-favorite-properties)
 - [Add to favorite](#add-to-favorite)
-- [remove from favorite](#remove-from-favorite)
-- [get-create-property-form-data (Fetch the data required to create a new property)]()
+- [Remove from favorite](#remove-from-favorite)
+- [Fetch the data required to create a new property](#get-create-property-form-data)
 
-#### Not allowed
-- deletion (It is not allowed to delete a property)
+##### Not allowed
+- **deletion**: It is not allowed to delete a property
 
 ---
 
@@ -22,7 +22,7 @@ The Properties API allows managing real estate listings, including:
 
 Retrieves a list of all available properties.
 
-### Query Parameters
+##### Query Parameters
 
 | Parameter | Type   | Description                                       | Default   |
 | :-------- | :----- | :------------------------------------------------ | :-------- |
@@ -34,14 +34,14 @@ Retrieves a list of all available properties.
 | `city`| str |  Filters the properties by city      | None        |
 | `country`| str |  Filters the properties by country      | None        |
 
-### Example Request
+##### Example Request
 
 ```bash
 curl -X GET "[http://localhost:8000/api/v1/properties/properties/?min_price=100000&total_rooms=2](http://127.0.0.1:8000/api/properties/properties/?min_price=100000&city=copenhagen)" \
      -H "Accept: application/json"
 ```
 
-### Example Response (200 OK)
+##### Example Response (200 OK)
 
 ```JSON
 [
@@ -96,7 +96,7 @@ Creates a new property listing. Requires authentication using `Bearer Token`.
 | owner | ForeignKey | The user who created the property. | False |
 
 
-### Example Request
+##### Example Request
 
 ```bash
 curl -X POST 'http://localhost:8000/api/v1/properties/properties/' \
@@ -118,7 +118,7 @@ curl -X POST 'http://localhost:8000/api/v1/properties/properties/' \
 --form 'property_images[0]image=@"/Desktop/home images/763eb29d-1881-87e3-7144-7165b6320a24.jpeg"' \
 ```
 
-### Example Response
+##### Example Response
 
 - **201 Created**: The successfully created.
 
@@ -183,14 +183,14 @@ curl -X POST 'http://localhost:8000/api/v1/properties/properties/' \
 
 Get details of a property. Does not require authentication.
 
-### Example Request
+##### Example Request
 
 ```bash
 curl --location 'http://localhost:8000/api/v1/properties/properties/1' \
 --header 'Cookie: messages=W1siX19q55x'
 ```
 
-### Example Response
+##### Example Response
 
 - **200 OK**
 ```JSON
@@ -240,7 +240,7 @@ curl --location 'http://localhost:8000/api/v1/properties/properties/1' \
 
 Add a property to favorite for a loged in user. Requires authentication.
 
-### Example Request
+##### Example Request
 
 ```bash
 curl -X POST 'http://localhost:8000/api/v1/properties/properties/39/add_to_favorites/' \
@@ -248,7 +248,7 @@ curl -X POST 'http://localhost:8000/api/v1/properties/properties/39/add_to_favor
 --header 'Cookie: messages=Wds; sessionid=ewyq157moopepfx'
 ```
 
-### Example Response
+##### Example Response
 
 - **200 OK**
 ```JSON
@@ -279,7 +279,7 @@ curl -X POST 'http://localhost:8000/api/v1/properties/properties/39/add_to_favor
 
 Remove a property from the user favorites. Requires authentication.
 
-### Example Request
+##### Example Request
 
 ```bash
 curl --location --request POST 'http://localhost:8000/api/v1/properties/properties/30/remove_from_favorites/' \
@@ -287,7 +287,7 @@ curl --location --request POST 'http://localhost:8000/api/v1/properties/properti
 --header 'Cookie: messages=Wds; sessionid=ewyq157moopepfx'
 ```
 
-### Example Response
+##### Example Response
 
 - **204 No Content**: If the property is successfully removed from the user favorite list.
 
@@ -309,7 +309,7 @@ curl --location --request POST 'http://localhost:8000/api/v1/properties/properti
 
 Fetch a list of favorite properties for the loged in user. Requires authentication.
 
-### Example Request
+##### Example Request
 
 ```bash
 curl --location 'http://localhost:8000/api/v1/properties/properties/user_favorite_properties/' \
@@ -317,7 +317,7 @@ curl --location 'http://localhost:8000/api/v1/properties/properties/user_favorit
 --header 'Cookie: messages=Wds; sessionid=ewyq157moopepfx'
 ```
 
-### Example Response
+##### Example Response
 
 - **200 OK**
 ```JSON
@@ -339,10 +339,10 @@ curl --location 'http://localhost:8000/api/v1/properties/properties/user_favorit
 ]
 ```
 
-## get-create-property-form-data
+## Fetch the data required to create a new property 
 Get the data to populate the create property form. Requires authentication.
 
-### Example Request
+##### Example Request
 
 ```bash
 curl --location 'http://localhost:8000/api/v1/properties/properties/get_create_property_form_data/'
@@ -354,7 +354,7 @@ curl --location 'http://localhost:8000/api/v1/properties/properties/get_create_p
 --header 'Cookie: messages=Wds; sessionid=ewyq157moopepfx'
 ```
 
-### Example Response
+##### Example Response
 
 - **401 Unauthorized**: If the property is successfully removed from the user favorite list.
 ```JSON

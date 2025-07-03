@@ -1,6 +1,6 @@
 # Developer Documentation for Balkan API
 
-Welcome to the official developer documentation for the Balkan API! This API provides the backend services for a real estate application, enabling robust CRUD operations for properties, user management, and favorite listings.
+Welcome to the official developer documentation for the Balkan API! This API provides the backend services for a real estate application, enabling robust CRUD operations for properties, user management and favorite listings.
 
 This documentation is designed to help you quickly integrate your applications (mobile, web, or other services) with the Balkan API.
 
@@ -24,11 +24,11 @@ This documentation is designed to help you quickly integrate your applications (
 
 2.  **API Reference**
     * [Properties API](./api-reference/properties.md)
-        * `GET /properties/`
-        * `GET /properties/{id}/`
-        * `POST /properties/`
+        * [`GET /properties/`](./api-reference/properties.md#list-properties)
+        * [`GET /properties/{id}/`](./api-reference/properties.md#retrieve-property)
+        * [`POST /properties/`](./api-reference/properties.md#create-property)
         * `PUT /properties/{id}/`
-        * `DELETE /properties/{id}/`
+        * [`DELETE /properties/{id}/`](./api-reference/properties.md#not-allowed)
     * [User API](./api-reference/users.md)
     * [Favorites API](./api-reference/favorites.md)
     * [Search API (if applicable)](./api-reference/search.md)
