@@ -29,8 +29,7 @@ Retrieves a list of all available properties.
 | `min_price` | integer | Filters properties with a price greater than or equal to this value. | None      |
 | `max_price` | integer | Filters properties with a price less than or equal to this value. | None      |
 | `total_rooms`| integer | Filters properties by number of rooms.         | None      |
-| `genre`    | integer | genre is same as type but it works with ids e.g. genre=1 will
-    return all the `Property` objects that have type=1       | None         |
+| `genre`    | integer | genre is same as type but it works with ids e.g. genre=1 will return all the `Property` objects that have type=1       | None         |
 | `type`| str |  type works with the string types      | None        |
 | `city`| str |  Filters the properties by city      | None        |
 | `country`| str |  Filters the properties by country      | None        |
@@ -70,30 +69,24 @@ curl -X GET "[http://localhost:8000/api/v1/properties/properties/?min_price=1000
 
 Creates a new property listing. Requires authentication using `Bearer Token`.
 
---------------------------------------------
-| Field	| Type	| Description	| Required |
---------------------------------------------
-| favorite_user | ManyToOneRel |  | False |
-| property_images | ManyToOneRel |  | False |
+| Field            | Type          | Description | Required |
+|------------------|---------------|-------------|----------|
+| favorite_user    | ManyToOneRel  |             | False    |
+| property_images  | ManyToOneRel  |             | False    |
 | id | BigAutoField | Auto generated | False |
 | created_at | DateTimeField | Auto generated | False |
 | updated_at | DateTimeField | Auto generated | False |
 | price | DecimalField | Price of the property. | True |
 | price_currency | CharField | Provide the currency abbreviations for the price. (3-letter acronym for the currency). | True |
-| area | FloatField | Coverd area of the property in square meters.The covered area
-        of a property typically refers to the total indoor living area, including
-        all rooms, hallways, and any other enclosed spaces within the structure. | True |
-| total_area | FloatField | Total ground area of the property. The total ground space
-        available refers to the entire area of land upon which the house is built,
-        including any outdoor spaces such as yards, gardens, driveways, etc. | True |
+| area | FloatField | Coverd area of the property in square meters.The covered area of a property typically refers to the total indoor living area, including all rooms, hallways, and any other enclosed spaces within the structure. | True |
+| total_area | FloatField | Total ground area of the property. The total ground space available refers to the entire area of land upon which the house is built, including any outdoor spaces such as yards, gardens, driveways, etc. | True |
 | measured_area | FloatField |  | False |
 | total_rooms | FloatField | Total number of rooms in the property. | False |
 | toilets | IntegerField | Total number of toilets in the property. | False |
 | construction_year | IntegerField | Year in which the property was built. | False |
 | renovation_year | IntegerField | Year in which the property was built. | False |
 | total_floors | IntegerField | Total number of floors and stories the property conprises of. | False |
-| heating | CharField | e.g. Heating installation. e.g. Central heating with one
-        heating unit. | True |
+| heating | CharField | e.g. Heating installation. e.g. Central heating with one heating unit. | True |
 | outer_walls | CharField | e.g. Brick. | True |
 | roof_type | CharField | e.g. Tile. | True |
 | description | TextField |  | True |
