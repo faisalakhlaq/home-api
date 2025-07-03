@@ -8,72 +8,82 @@ Balkan API is a Django REST Framework project that serves as the backend for a r
 * User authentication and authorization
 * Management of user favorite properties
 
-## Getting Started
+## Getting Started (with Docker Compose)
 
-These instructions will get you a copy of the project up and running on your local machine for development and testing purposes.
+The quickest way to get the Balkan API running for local development is using Docker Compose.
 
 ### Prerequisites
 
-* Python 3.x
-* pip (Python package installer)
-* Docker (recommended)
-* PostgreSQL (or your chosen database)
+* **Docker Engine and Docker Compose**: You'll need Docker installed and running on your system, along with the Docker Compose CLI plugin.
+    * **For Linux users (like Ubuntu)**: You typically install these directly via your package manager or Docker's official repositories.
+    * **For macOS/Windows users**: [Docker Desktop](https://www.docker.com/products/docker-desktop) is the recommended way, as it includes both Docker Engine and Docker Compose.
 
-### Installation
+### Quick Start
 
 1.  **Clone the repository:**
     ```bash
-    git clone [git@github.com:faisalakhlaq/home-api.git](git@github.com:faisalakhlaq/home-api.git)
+    git clone git@github.com:faisalakhlaq/home-api.git
     cd home-api
     ```
 
-2.  **Create and activate a virtual environment:**
-    ```bash
-    python -m venv env
-    source env/bin/activate  # On Windows: .\env\Scripts\activate
-    ```
-
-3.  **Install dependencies:**
-    ```bash
-    pip install -r requirements.txt
-    ```
-
-4.  **Configure Environment Variables:**
-    Create a `.env` file in the project root based on `.env.example` (you should have an example file):
+2.  **Configure Environment Variables:**
+    Create a `.env` file in the project root based on `.env.example` (you should have an example file). This will contain your database credentials, secret key, etc.
     ```ini
-    # .env
+    # .env (example - adjust as per your .env.example)
     DEBUG=True
-    SECRET_KEY='your_super_secret_key'
-    DATABASE_URL='postgres://user:password@host:port/dbname'
+    SECRET_KEY='your_super_secret_key_for_dev'
+    DATABASE_URL='postgres://user:password@db:5432/balkan_db' # Use 'db' as hostname for Docker Compose
     # ... other settings
     ```
 
-5.  **Run Migrations:**
+3.  **Build and Run Services:**
     ```bash
-    python manage.py migrate
+    docker compose up --build -d
     ```
 
-6.  **Create a Superuser (optional, for admin access):**
+4.  **Apply Migrations:**
     ```bash
-    python manage.py createsuperuser
+    docker compose exec backend python manage.py migrate
     ```
 
-7.  **Run the Development Server:**
+5.  **Create a Superuser (optional, for admin access):**
     ```bash
-    python manage.py runserver
+    docker compose exec backend python manage.py createsuperuser
     ```
-    The API will be available at `http://127.0.0.1:8000/`.
+
+6.  **Seed the Database (optional, for demo data):**
+    ```bash
+    docker compose exec backend make seed
+    ```
+
+The API will be available at `http://localhost:8000/`.
 
 ## Developer Documentation
 
-For detailed API documentation, endpoint specifications, and integration guides, please refer to our official developer documentation:
+For detailed installation instructions (including virtual environment setup), API endpoint specifications, and integration guides, please refer to our official developer documentation:
 
 - [Go to Developer Documentation](./docs/index.md)
+
+## Makefile Commands
+
+For convenience, several common development tasks are available via `make` commands when running with Docker Compose:
+
+* `make start`: Runs the backend service and drops you into its shell.
+* `make run_dev`: Runs the development Gunicorn server (typically used inside the Docker container).
+* `make migrate`: Applies Django database migrations.
+* `make makemigrations`: Creates new Django migration files.
+* `make test`: Runs backend tests.
+* `make mypy`: Runs MyPy type checks.
+* `make flake8`: Runs Flake8 linting.
+* `make seed`: Seeds the database with demo data.
+
+To use these, prefix them with `docker compose exec backend` (e.g., `docker compose exec backend make migrate`) or use `make start` to get into the container shell first.
 
 ## Built With
 
 * [Django](https://www.djangoproject.com/)
 * [Django REST Framework](https://www.django-rest-framework.org/)
+* [Docker](https://www.docker.com/) & [Docker Compose](https://docs.docker.com/compose/)
 
 ## License
 
