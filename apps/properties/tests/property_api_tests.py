@@ -19,6 +19,7 @@ from apps.properties.views import PropertyViewSet
 
 User = get_user_model()
 
+
 class TestPropertyAPI(TestCase):
     @classmethod
     def setUpTestData(cls):
@@ -43,21 +44,19 @@ class TestPropertyAPI(TestCase):
             "postal_code": "6250",
             "country": "North Mecedonia",
         }
-        
+
         # Create a test user
         cls.user = User.objects.create_user(
-            username='testuser',
-            email='test@example.com',
-            password='testpass123'
+            username="testuser", email="test@example.com", password="testpass123"
         )
-        
+
     def setUp(self) -> None:
         super().setUp()
         # The client may store state (e.g., authentication tokens) that
         # shouldn’t leak between tests. Therefore, keep in setUp.
         self.client = APIClient()
         self.factory = APIRequestFactory()
-    
+
     def create_property(self, **params):
         address = dict(self.address_payload)
         payload = dict(self.property_payload)
@@ -94,36 +93,27 @@ class TestPropertyAPI(TestCase):
 
     def test_list_queryset(self):
         view = PropertyViewSet()
-        request = self.factory.get('/')
+        request = self.factory.get("/")
         view.request = request
         view.action = "list"
-        
+
         # Test unauthenticated case
         queryset = view.get_queryset()
-        expected_queryset = property_list_queryset()  # Use the same function as your view
-        self.assertQuerysetEqual(
-            queryset,
-            expected_queryset,
-            transform=lambda x: x
-        )
-        
+        expected_queryset = (
+            property_list_queryset()
+        )  # Use the same function as your view
+        self.assertQuerysetEqual(queryset, expected_queryset, transform=lambda x: x)
+
         # Test authenticated case
         request.user = self.user
         queryset = view.get_queryset()
         expected_queryset = property_list_queryset(user_id=self.user.id)
-        self.assertQuerysetEqual(
-            queryset,
-            expected_queryset,
-            transform=lambda x: x
-        )
+        self.assertQuerysetEqual(queryset, expected_queryset, transform=lambda x: x)
 
     def test_property_create(self):
         self.client.force_authenticate(user=self.user)
 
-        payload = {
-            **self.property_payload,
-            "address": self.address_payload
-        }
+        payload = {**self.property_payload, "address": self.address_payload}
         res = self.client.post(self.list_url, data=payload, format="json")
         response_data = res.json()
         print(response_data)
@@ -138,7 +128,7 @@ class TestPropertyAPI(TestCase):
         self.assertEqual(
             res.data["description"], "Комфорен стан на адреса Маршал Тито во Кичево"
         )
-        self.assertIn('address', response_data)
+        self.assertIn("address", response_data)
         self.assertEqual(response_data["address"]["street"], "Maršal Tito")
 
     def test_delete_property_not_allowed(self) -> None:
@@ -152,20 +142,14 @@ class TestPropertyAPI(TestCase):
 
     def test_create_property_unauthenticated(self):
         response = self.client.post(
-            self.list_url,
-            data=self.property_payload,
-            format='json'
+            self.list_url, data=self.property_payload, format="json"
         )
         self.assertEqual(response.status_code, 401)
 
     def test_create_property_invalid_data(self):
         self.client.force_authenticate(user=self.user)
         invalid_payload = {**self.property_payload, "price": ""}
-        response = self.client.post(
-            self.list_url,
-            data=invalid_payload,
-            format='json'
-        )
+        response = self.client.post(self.list_url, data=invalid_payload, format="json")
         self.assertEqual(response.status_code, 400)
 
     def test_retrieve_property(self) -> None:

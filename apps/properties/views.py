@@ -209,7 +209,12 @@ class PropertyViewSet(ModelViewSet):  # type: ignore
             status=HTTP_405_METHOD_NOT_ALLOWED,
         )
 
-    @action(detail=False, methods=["GET"], url_name="get-create-property-form-data")
+    @action(
+        detail=False,
+        methods=["GET"],
+        url_name="get-create-property-form-data",
+        permission_classes=[IsAuthenticated],
+    )
     def get_create_property_form_data(
         self, request: Request, *args: Any, **kwargs: Any
     ) -> Response:
@@ -238,6 +243,23 @@ class PropertyViewSet(ModelViewSet):  # type: ignore
     def user_favorite_properties(
         self, request: Request, *args: Any, **kwargs: Any
     ) -> Response:
+        """Get a list of favorite properties for the logged in user.
+
+        Args:
+            request (Request):
+
+        Returns:
+            Response: List of properties with following details:
+            - id
+            - type
+            - description
+            - created_at
+            - price
+            - price_currency
+            - address
+            - image
+            - favorite
+        """
         serializer = self.get_serializer(self.get_queryset(), many=True)
         return Response(serializer.data, status=HTTP_200_OK)
 
