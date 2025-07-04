@@ -31,7 +31,7 @@ This documentation is designed to help you quickly integrate your applications (
         * [`DELETE /properties/{id}/`](./api-reference/properties.md#not-allowed)
     * [User API](./api-reference/users.md)
     * [Favorites API](./api-reference/favorites.md)
-    * [Search API (if applicable)](./api-reference/search.md)
+    * [Search API](./api-reference/search.md)
     * [Common Response Formats](./api-reference/common-responses.md)
 
 3.  **Core Concepts**
