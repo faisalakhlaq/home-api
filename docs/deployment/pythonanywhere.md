@@ -4,15 +4,16 @@ This document outlines the step-by-step process for deploying and updating your 
 
 ## Table of Contents
 
-1.  [Prerequisites](https://www.google.com/search?q=%23prerequisites)
-2.  [Pull New Changes and Update Dependencies](https://www.google.com/search?q=%23pull-new-changes-and-update-dependencies)
-3.  [Configure the WSGI File](https://www.google.com/search?q=%23configure-the-wsgi-file)
-4.  [Configure the `manage.py` File (Optional but Recommended)](https://www.google.com/search?q=%23configure-the-managepy-file-optional-but-recommended)
-5.  [Generate static files]
-5.  [Final Deployment Steps and Verification](https://www.google.com/search?q=%23final-deployment-steps-and-verification)
-6.  [Troubleshooting](https://www.google.com/search?q=%23troubleshooting)
+1.  [Prerequisites](#1-prerequisites)
+2.  [Pull New Changes and Update Dependencies](#2-pull-new-changes-and-update-dependencies)
+3.  [Configure the WSGI File](#3-configure-the-wsgi-file)
+4.  [Configure the `manage.py` File (Optional but Recommended)](#4-configure-the-managepy-file-optional-but-recommended)
+5.  [Generate static files](#5-generate-static-files)
+6.  [Final Deployment Steps and Verification](#6-final-deployment-steps-and-verification)
+7.  [Troubleshooting](#7-troubleshooting)
 
 -----
+
 ## 1\. Prerequisites
 
 Before you begin, ensure you have the following:
@@ -36,6 +37,10 @@ This section details how to get the latest code and install any new dependencies
 
 2.  **Navigate to Your Project Directory:**
 
+      * Verify that the virtual environment is active by checking if the prompt starts with
+        ```bash
+        (venv)
+        ```
       * Verify you are in your home directory:
         ```bash
         (venv) $ pwd
@@ -63,7 +68,7 @@ This section details how to get the latest code and install any new dependencies
 3.  **Pull Latest Changes:**
 
     ```bash
-    (venv) $ git pull
+    git pull
     ```
 
       * *Note:* If there are merge conflicts, resolve them locally and push the changes, then pull again.
@@ -71,8 +76,8 @@ This section details how to get the latest code and install any new dependencies
 4.  **Install/Update Python Dependencies:**
 
     ```bash
-    (venv) $ pip install -r requirements.txt
-    (venv) $ pip install -r requirements-prod.txt
+    pip install -r requirements.txt
+    pip install -r requirements-prod.txt
     ```
 
       * This ensures all necessary packages are installed or updated within your virtual environment.
@@ -80,7 +85,7 @@ This section details how to get the latest code and install any new dependencies
 5.  **Run Database Migrations (if applicable):**
 
     ```bash
-    (venv) $ python manage.py migrate
+    python manage.py migrate
     ```
 
       * This applies any new database schema changes.
@@ -164,7 +169,25 @@ It's good practice to ensure your `manage.py` file explicitly uses your producti
 
 -----
 
-## 5\. Final Deployment Steps and Verification
+## 5\. Generate static files
+
+Generate static files if some new libraries are added which use static file.
+
+[Navigate to Your Project Directory](#2-pull-new-changes-and-update-dependencies#navigate-to-your-project-directory)
+```
+cd home-api
+python manage.py collectstatic
+```
+
+Move the static file to the root directory folder
+```
+cd ../
+mv home-api/static .
+```
+
+---
+
+## 6\. Final Deployment Steps and Verification
 
 After updating your code and configuration, you need to reload your web application for the changes to take effect.
 
@@ -187,7 +210,7 @@ After updating your code and configuration, you need to reload your web applicat
 
 -----
 
-## 6\. Troubleshooting
+## 7\. Troubleshooting
 
 If you encounter issues, here are some common troubleshooting steps:
 
@@ -207,17 +230,3 @@ If you encounter issues, here are some common troubleshooting steps:
       * Always remember to "Reload" your web app from the "Web" tab after making any code or configuration changes.
 
 -----
-
-## 7./ Generate static files
-
-Generate static files if some new libraries are added which use static file.
-
-```
-python manage.py collectstatic
-```
-
-Move the static file to the root directory folder
-```
-mv static/* staticfiles/
-
-```
