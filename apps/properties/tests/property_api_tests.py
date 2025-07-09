@@ -102,13 +102,13 @@ class TestPropertyAPI(TestCase):
         expected_queryset = (
             property_list_queryset()
         )  # Use the same function as your view
-        self.assertQuerysetEqual(queryset, expected_queryset, transform=lambda x: x)
+        self.assertQuerySetEqual(queryset, expected_queryset, transform=lambda x: x)
 
         # Test authenticated case
         request.user = self.user
         queryset = view.get_queryset()
         expected_queryset = property_list_queryset(user_id=self.user.id)
-        self.assertQuerysetEqual(queryset, expected_queryset, transform=lambda x: x)
+        self.assertQuerySetEqual(queryset, expected_queryset, transform=lambda x: x)
 
     def test_property_create(self):
         self.client.force_authenticate(user=self.user)
