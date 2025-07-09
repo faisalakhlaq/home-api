@@ -4,15 +4,16 @@ This document outlines the step-by-step process for deploying and updating your 
 
 ## Table of Contents
 
-1.  [Prerequisites](https://www.google.com/search?q=%23prerequisites)
-2.  [Pull New Changes and Update Dependencies](https://www.google.com/search?q=%23pull-new-changes-and-update-dependencies)
-3.  [Configure the WSGI File](https://www.google.com/search?q=%23configure-the-wsgi-file)
-4.  [Configure the `manage.py` File (Optional but Recommended)](https://www.google.com/search?q=%23configure-the-managepy-file-optional-but-recommended)
-5.  [Generate static files]
-5.  [Final Deployment Steps and Verification](https://www.google.com/search?q=%23final-deployment-steps-and-verification)
-6.  [Troubleshooting](https://www.google.com/search?q=%23troubleshooting)
+1.  [Prerequisites](#1-prerequisites)
+2.  [Pull New Changes and Update Dependencies](#2-pull-new-changes-and-update-dependencies)
+3.  [Configure the WSGI File](#3-configure-the-wsgi-file)
+4.  [Configure the `manage.py` File (Optional but Recommended)](#4-configure-the-managepy-file-optional-but-recommended)
+5.  [Generate static files](#5-generate-static-files)
+6.  [Final Deployment Steps and Verification](#6-final-deployment-steps-and-verification)
+7.  [Troubleshooting](#7-troubleshooting)
 
 -----
+
 ## 1\. Prerequisites
 
 Before you begin, ensure you have the following:
@@ -36,6 +37,10 @@ This section details how to get the latest code and install any new dependencies
 
 2.  **Navigate to Your Project Directory:**
 
+      * Verify that the virtual environment is active by checking if the prompt starts with
+        ```bash
+        (venv)
+        ```
       * Verify you are in your home directory:
         ```bash
         (venv) $ pwd
@@ -63,7 +68,7 @@ This section details how to get the latest code and install any new dependencies
 3.  **Pull Latest Changes:**
 
     ```bash
-    (venv) $ git pull
+    git pull
     ```
 
       * *Note:* If there are merge conflicts, resolve them locally and push the changes, then pull again.
@@ -71,8 +76,8 @@ This section details how to get the latest code and install any new dependencies
 4.  **Install/Update Python Dependencies:**
 
     ```bash
-    (venv) $ pip install -r requirements.txt
-    (venv) $ pip install -r requirements-prod.txt
+    pip install -r requirements.txt
+    pip install -r requirements-prod.txt
     ```
 
       * This ensures all necessary packages are installed or updated within your virtual environment.
@@ -80,7 +85,7 @@ This section details how to get the latest code and install any new dependencies
 5.  **Run Database Migrations (if applicable):**
 
     ```bash
-    (venv) $ python manage.py migrate
+    python manage.py migrate
     ```
 
       * This applies any new database schema changes.
@@ -164,7 +169,70 @@ It's good practice to ensure your `manage.py` file explicitly uses your producti
 
 -----
 
-## 5\. Final Deployment Steps and Verification
+## 5\. Generate and Serve Static Files (CSS, JS, Images)
+
+This section details how to generate and configure your project's static files (CSS, JavaScript, images, etc.) to be served correctly on PythonAnywhere. Django's `collectstatic` command gathers all static files from your apps and any directories you specify, placing them into a single directory defined by `STATIC_ROOT`. PythonAnywhere then serves these files directly from that location.
+
+### 5.1. Configure Django Settings
+
+First, ensure your Django project's settings are correctly configured for static files. 
+
+Add or verify the following settings:
+
+```python
+# settings/production.py
+
+STATIC_URL = '/static/'
+
+# The absolute path to the directory where Django's `collectstatic` command
+# will gather all static files for deployment.
+# It's best practice to place this *inside* your project directory but
+# separate from your version-controlled static assets (e.g., 'static' folder in apps).
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+
+# Optional: If you have additional static files not associated with a specific app
+# (e.g., global CSS/JS files), list their directories here.
+# STATICFILES_DIRS = [
+#     os.path.join(BASE_DIR, 'your_custom_static_folder'),
+# ]
+```
+
+  * **`STATIC_URL`**: This is the URL path (e.g., `https://faisalakhlaq.pythonanywhere.com/static/css/style.css`) that will be used to access your static files in the browser.
+  * **`STATIC_ROOT`**: This specifies the *physical directory* on the server where all your static files will be collected by `collectstatic`. For PythonAnywhere, setting it to `os.path.join(BASE_DIR, 'staticfiles')` means the files will be placed in a new folder named `staticfiles` directly within your `home-api` project directory (e.g., `/home/faisalakhlaq/home-api/staticfiles/`).
+
+### 5.2. Configure PythonAnywhere Web App
+
+Next, you need to tell PythonAnywhere to serve files from your `STATIC_ROOT` directory at the `STATIC_URL` path.
+
+1.  **Navigate to the "Web" tab** on your PythonAnywhere dashboard.
+2.  **Scroll down to the "Static files" section.**
+3.  **Add a new entry (or edit an existing one) with the following details:**
+      * **URL:** `/static/` (This **must** exactly match your `STATIC_URL` from `settings.py`).
+      * **Directory:** `/home/faisalakhlaq/home-api/staticfiles` (This **must** exactly match your `STATIC_ROOT` from `settings.py`. **Remember to replace `faisalakhlaq` with your actual PythonAnywhere username.**)
+4.  Ensure the "Enabled" checkbox for this static file mapping is checked.
+
+### 5.3. Generate Static Files
+
+Now that your settings and PythonAnywhere configuration are in place, you can run the `collectstatic` command.
+
+1.  **Open a Bash Console** (as described in [Section 2. Pull New Changes and Update Dependencies](#2-pull-new-changes-and-update-dependencies)).
+
+2.  **Navigate to your project's root directory:**
+    ```bash
+    (venv) $ cd home-api/
+    ```
+3.  **Run the `collectstatic` command:**
+    ```bash
+    (venv) $ python manage.py collectstatic
+    ```
+      * You will be prompted to confirm if you want to overwrite existing files. Type `yes` and press Enter.
+      * This command will gather all static files from your Django apps and `STATICFILES_DIRS` and copy them into the `/home/faisalakhlaq/home-api/staticfiles/` directory.
+
+After this follow the [final deployment steps and verification](#6-final-deployment-steps-and-verification).
+
+---
+
+## 6\. Final Deployment Steps and Verification
 
 After updating your code and configuration, you need to reload your web application for the changes to take effect.
 
@@ -187,7 +255,7 @@ After updating your code and configuration, you need to reload your web applicat
 
 -----
 
-## 6\. Troubleshooting
+## 7\. Troubleshooting
 
 If you encounter issues, here are some common troubleshooting steps:
 
@@ -207,17 +275,3 @@ If you encounter issues, here are some common troubleshooting steps:
       * Always remember to "Reload" your web app from the "Web" tab after making any code or configuration changes.
 
 -----
-
-## 7./ Generate static files
-
-Generate static files if some new libraries are added which use static file.
-
-```
-python manage.py collectstatic
-```
-
-Move the static file to the root directory folder
-```
-mv static/* staticfiles/
-
-```
