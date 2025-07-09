@@ -1,16 +1,23 @@
-# from dj_rest_auth.views import (
-#     LoginView,
-#     LogoutView,
-# )
+from django.urls import path
 
-# from django.urls import path
+from dj_rest_auth.jwt_auth import get_refresh_view
+from dj_rest_auth.registration.views import RegisterView
+from dj_rest_auth.views import (
+    LoginView,
+    LogoutView,
+)
 
-# from .views import AuthUserDetailsView
+from rest_framework_simplejwt.views import TokenVerifyView
 
-# app_name = "apps.auth"
+from .views import AuthUserDetailsView
 
-# urlpatterns = [
-#     path("login", LoginView.as_view(), name="rest_login"),
-#     path("user", AuthUserDetailsView.as_view(), name="auth_rest_user_details"),
-#     path("logout", LogoutView.as_view(), name="rest_logout"),
-# ]
+app_name = "apps.users"
+
+urlpatterns = [
+    path("register", RegisterView.as_view(), name="rest_register"),
+    path("login", LoginView.as_view(), name="rest_login"),
+    path("logout", LogoutView.as_view(), name="rest_logout"),
+    path("user", AuthUserDetailsView.as_view(), name="rest_user_details"),
+    path("token/verify", TokenVerifyView.as_view(), name="token_verify"),
+    path("token/refresh", get_refresh_view().as_view(), name="token_refresh"),
+]

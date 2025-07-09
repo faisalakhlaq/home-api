@@ -37,14 +37,14 @@ seed_status:
 seed_properties:
 	cat seed/properties.py | python manage.py shell;
 
-run_dev: ## Run the DEV server
-	gunicorn --bind 0.0.0.0:8000 --reload balkan.wsgi --timeout 100000;
-
 build_backend:
 	docker compose build backend;
 
 start: ## Run backend and go to its shell
 	docker compose run --service-ports -u 1000:1000 backend;
+
+run_dev: ## Run the DEV server
+	gunicorn --bind 0.0.0.0:8000 --reload balkan.wsgi --timeout 100000;
 
 prune: ## Prune volumes and containers
 	make prune_volumes;

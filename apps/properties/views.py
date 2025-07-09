@@ -2,19 +2,30 @@ from typing import Any, Type, TypeVar
 
 from django_filters import rest_framework as filters
 
-from django.db.models import Prefetch, QuerySet
+from django.db.models import QuerySet
 
 from rest_framework.decorators import action
-from rest_framework.permissions import AllowAny
+from rest_framework.generics import get_object_or_404
+from rest_framework.permissions import IsAuthenticated, IsAuthenticatedOrReadOnly
 from rest_framework.response import Response
 from rest_framework.request import Request
 from rest_framework.serializers import BaseSerializer
-from rest_framework.status import HTTP_200_OK, HTTP_405_METHOD_NOT_ALLOWED
+from rest_framework.status import (
+    HTTP_200_OK,
+    HTTP_204_NO_CONTENT,
+    HTTP_400_BAD_REQUEST,
+    HTTP_405_METHOD_NOT_ALLOWED,
+)
 from rest_framework.viewsets import ModelViewSet
 
-from apps.core.models import Address, City, Genre, Status
+from apps.core.models import City, Genre, Status
 from apps.core.serializers import IdNameListSerializer
-from apps.properties.models import Property, PropertyImage
+from apps.users.models import UserFavoriteProperty
+from apps.properties.models import Property
+from apps.properties.querysets import (
+    property_list_queryset,
+    user_favorite_properties_qs,
+)
 from apps.properties.serializers import (
     PropertyDetailSerializer,
     PropertyListSerializer,
@@ -130,7 +141,7 @@ class PropertyViewSet(ModelViewSet):  # type: ignore
     Properties API supports filtering for following fields:
     1. total_rooms
     2. genre: genre is same as type but it works with ids e.g. genre=1 will
-    return all all `Property` objects that have type=1
+    return all the `Property` objects that have type=1
     3. type: type works with the string types
     4. city
     5. country
@@ -148,7 +159,7 @@ class PropertyViewSet(ModelViewSet):  # type: ignore
     3. Status List[Dict[int, str]]: List containig valid `Status` [{id, name}]
     """
 
-    permission_classes = [AllowAny]
+    permission_classes = [IsAuthenticatedOrReadOnly]
     filter_backends = (filters.DjangoFilterBackend,)
     filterset_class = PropertyFilter
 
@@ -156,40 +167,35 @@ class PropertyViewSet(ModelViewSet):  # type: ignore
 
     def get_queryset(self) -> QuerySet[Property]:
         if self.action == "list":
-            return (
-                Property.objects.select_related("type")
-                .prefetch_related(
-                    Prefetch(
-                        "property_images",
-                        queryset=PropertyImage.objects.only("image"),
-                    ),
-                    Prefetch(
-                        "address",
-                        queryset=Address.objects.only("postal_code", "street", "city"),
-                    ),
-                )
-                .only(
-                    "id",
-                    "type",
-                    "description",
-                    "created_at",
-                    "price",
-                    "price_currency",
-                    "address",
-                )
-            )
+            if hasattr(self.request, "user") and self.request.user.is_authenticated:
+                return property_list_queryset(user_id=self.request.user.id)
+            else:
+                return property_list_queryset()
         elif self.action in [
             "get-create-property-form-data",
             "get_create_property_form_data",
         ]:
-            return Property.objects.all()
+            return Property.objects.none()
+        elif self.action in [
+            "user_favorite_properties",
+            "user-favorite-properties",
+        ]:
+            return user_favorite_properties_qs(user_id=self.request.user.id)  # type: ignore
+        elif self.action in ["add-to-favorites", "add_to_favorites"]:
+            return Property.objects.none()
         else:
             return Property.objects.select_related("address").prefetch_related(
                 "property_images"
             )
 
     def get_serializer_class(self) -> Type[BaseSerializer[_MT_co]]:
-        if self.action == "list":
+        if self.action in [
+            "list",
+            "add-to-favorites",
+            "add_to_favorites",
+            "user_favorite_properties",
+            "user-favorite-properties",
+        ]:
             return PropertyListSerializer
         elif self.action == "retrieve":
             return PropertyDetailSerializer
@@ -203,9 +209,14 @@ class PropertyViewSet(ModelViewSet):  # type: ignore
             status=HTTP_405_METHOD_NOT_ALLOWED,
         )
 
-    @action(detail=False, methods=["GET"], url_name="get-create-property-form-data")
+    @action(
+        detail=False,
+        methods=["GET"],
+        url_name="get-create-property-form-data",
+        permission_classes=[IsAuthenticated],
+    )
     def get_create_property_form_data(
-        self, request: Request, *args: None, **kwargs: None
+        self, request: Request, *args: Any, **kwargs: Any
     ) -> Response:
         """Returns the data to help create a `Property`."""
         genre_serializer = IdNameListSerializer(
@@ -222,3 +233,78 @@ class PropertyViewSet(ModelViewSet):  # type: ignore
             "cities": City.objects.only("name").values_list("name", flat=True),
         }
         return Response(data=data, status=HTTP_200_OK)
+
+    @action(
+        detail=False,
+        methods=["GET"],
+        url_name="user-favorite-properties",
+        permission_classes=[IsAuthenticated],
+    )
+    def user_favorite_properties(
+        self, request: Request, *args: Any, **kwargs: Any
+    ) -> Response:
+        """Get a list of favorite properties for the logged in user.
+
+        Args:
+            request (Request):
+
+        Returns:
+            Response: List of properties with following details:
+            - id
+            - type
+            - description
+            - created_at
+            - price
+            - price_currency
+            - address
+            - image
+            - favorite
+        """
+        serializer = self.get_serializer(self.get_queryset(), many=True)
+        return Response(serializer.data, status=HTTP_200_OK)
+
+    @action(
+        detail=True,
+        methods=["post"],
+        url_name="add-to-favorites",
+        permission_classes=[IsAuthenticated],
+        name="Add to favorites",
+    )
+    def add_to_favorites(
+        self, request: Request, pk: int, *args: Any, **kwargs: Any
+    ) -> Response:
+        """Add the given property to the user favorite list."""
+        property_obj = get_object_or_404(Property, pk=pk)
+        UserFavoriteProperty.objects.get_or_create(
+            user=request.user, property=property_obj
+        )
+        serializer = self.get_serializer(
+            property_list_queryset(
+                filter=[property_obj.id], user_id=request.user.id  # type: ignore
+            ).first()
+        )
+        return Response(data=serializer.data, status=HTTP_200_OK)
+
+    @action(
+        detail=True,
+        methods=["post"],
+        url_name="remove-from-favorites",
+        permission_classes=[IsAuthenticated],
+        name="Remove from favorites",
+    )
+    def remove_from_favorites(
+        self, request: Request, pk: int, *args: Any, **kwargs: Any
+    ) -> Response:
+        """Remove the given property from the user favorite list."""
+        property_obj = get_object_or_404(Property, pk=pk)
+        favorite_qs = UserFavoriteProperty.objects.filter(  # type: ignore
+            user=request.user, property=property_obj
+        )
+        if not favorite_qs.exists():
+            return Response(
+                data={"error": "The given property is not in user favorites."},
+                status=HTTP_400_BAD_REQUEST,
+            )
+
+        favorite_qs.delete()
+        return Response(status=HTTP_204_NO_CONTENT)

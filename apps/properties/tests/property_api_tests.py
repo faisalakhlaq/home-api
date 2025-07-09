@@ -1,8 +1,15 @@
-from django.urls import reverse
+import json
+
+from django.contrib.auth import get_user_model
 from django.test import TestCase
+from django.urls import reverse
+
+from rest_framework.test import APIClient
+from rest_framework.test import APIRequestFactory
 
 from apps.core.models import Address
 from apps.properties.models import Property
+from apps.properties.querysets import property_list_queryset
 from apps.properties.serializers import (
     PropertyDetailSerializer,
     PropertyListSerializer,
@@ -10,17 +17,19 @@ from apps.properties.serializers import (
 )
 from apps.properties.views import PropertyViewSet
 
+User = get_user_model()
+
 
 class TestPropertyAPI(TestCase):
-    def setUp(self) -> None:
-        super().setUp()
-        self.list_url: str = reverse("apps.properties:properties-list")
-        self.detail_url: str = "apps.properties:properties-detail"
-        self.property_form: str = reverse(
+    @classmethod
+    def setUpTestData(cls):
+        cls.list_url: str = reverse("apps.properties:properties-list")
+        cls.detail_url: str = "apps.properties:properties-detail"
+        cls.property_form: str = reverse(
             "apps.properties:properties-get-create-property-form-data"
         )
 
-        self.property_payload = {
+        cls.property_payload = {
             "price": "50000",
             "price_currency": "Euro",
             "area": 110.0,
@@ -28,13 +37,25 @@ class TestPropertyAPI(TestCase):
             "total_rooms": 4.0,
             "description": "Комфорен стан на адреса Маршал Тито во Кичево",
         }
-        self.address_payload = {
+        cls.address_payload = {
             "street": "Maršal Tito",
             "city": "Kičevo",
             "region": "R12",
             "postal_code": "6250",
             "country": "North Mecedonia",
         }
+
+        # Create a test user
+        cls.user = User.objects.create_user(
+            username="testuser", email="test@example.com", password="testpass123"
+        )
+
+    def setUp(self) -> None:
+        super().setUp()
+        # The client may store state (e.g., authentication tokens) that
+        # shouldn’t leak between tests. Therefore, keep in setUp.
+        self.client = APIClient()
+        self.factory = APIRequestFactory()
 
     def create_property(self, **params):
         address = dict(self.address_payload)
@@ -70,38 +91,66 @@ class TestPropertyAPI(TestCase):
         serializer_class = view.get_serializer_class()
         self.assertEqual(serializer_class, PropertySerializer)
 
-    # def test_list_queryset(self):
-    #     view = PropertyViewSet()
-    #     view.action = "list"
-    #     list_qs = view.get_queryset()
-    #     TODO Use assertQuerysetEqual
-    #     self.assertEqual(list_qs, PropertyListSerializer)
+    def test_list_queryset(self):
+        view = PropertyViewSet()
+        request = self.factory.get("/")
+        view.request = request
+        view.action = "list"
+
+        # Test unauthenticated case
+        queryset = view.get_queryset()
+        expected_queryset = (
+            property_list_queryset()
+        )  # Use the same function as your view
+        self.assertQuerySetEqual(queryset, expected_queryset, transform=lambda x: x)
+
+        # Test authenticated case
+        request.user = self.user
+        queryset = view.get_queryset()
+        expected_queryset = property_list_queryset(user_id=self.user.id)
+        self.assertQuerySetEqual(queryset, expected_queryset, transform=lambda x: x)
 
     def test_property_create(self):
-        payload = dict(self.property_payload)
-        payload["address"] = dict(self.address_payload)
-        res = self.client.post(
-            self.list_url, data=payload, content_type="application/json"
-        )
+        self.client.force_authenticate(user=self.user)
+
+        payload = {**self.property_payload, "address": self.address_payload}
+        res = self.client.post(self.list_url, data=payload, format="json")
+        response_data = res.json()
+        print(response_data)
         self.assertEqual(res.status_code, 201)
-        self.assertEqual(res.data["address"]["street"], "Maršal Tito")
-        self.assertEqual(res.data["price"], 50000)
-        self.assertEqual(res.data["price_currency"], "Euro")
-        self.assertEqual(res.data["area"], 110.0)
-        self.assertEqual(res.data["total_area"], 130.0)
-        self.assertEqual(res.data["measured_area"], None)
-        self.assertEqual(res.data["total_rooms"], 4.0)
+        self.assertEqual(response_data["owner"], self.user.id)
+        self.assertEqual(response_data["price"], 50000)
+        self.assertEqual(response_data["price_currency"], "Euro")
+        self.assertEqual(response_data["area"], 110.0)
+        self.assertEqual(response_data["total_area"], 130.0)
+        self.assertEqual(response_data["measured_area"], None)
+        self.assertEqual(response_data["total_rooms"], 4.0)
         self.assertEqual(
             res.data["description"], "Комфорен стан на адреса Маршал Тито во Кичево"
         )
+        self.assertIn("address", response_data)
+        self.assertEqual(response_data["address"]["street"], "Maršal Tito")
 
     def test_delete_property_not_allowed(self) -> None:
         prop = self.create_property()
         url = reverse(self.detail_url, kwargs={"pk": prop.pk})
+        self.client.force_authenticate(user=self.user)
         res = self.client.delete(url)
         self.assertEqual(res.status_code, 405)
         self.assertIn("`Property` deletion is not allowed.", res.data["error"])
         prop.delete()
+
+    def test_create_property_unauthenticated(self):
+        response = self.client.post(
+            self.list_url, data=self.property_payload, format="json"
+        )
+        self.assertEqual(response.status_code, 401)
+
+    def test_create_property_invalid_data(self):
+        self.client.force_authenticate(user=self.user)
+        invalid_payload = {**self.property_payload, "price": ""}
+        response = self.client.post(self.list_url, data=invalid_payload, format="json")
+        self.assertEqual(response.status_code, 400)
 
     def test_retrieve_property(self) -> None:
         prop = self.create_property()
@@ -132,3 +181,7 @@ class TestPropertyAPI(TestCase):
 
     def tearDown(self) -> None:
         return super().tearDown()
+
+    @classmethod
+    def tearDownClass(cls):
+        super().tearDownClass()
