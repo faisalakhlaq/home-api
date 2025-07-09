@@ -8,6 +8,7 @@ This document outlines the step-by-step process for deploying and updating your 
 2.  [Pull New Changes and Update Dependencies](https://www.google.com/search?q=%23pull-new-changes-and-update-dependencies)
 3.  [Configure the WSGI File](https://www.google.com/search?q=%23configure-the-wsgi-file)
 4.  [Configure the `manage.py` File (Optional but Recommended)](https://www.google.com/search?q=%23configure-the-managepy-file-optional-but-recommended)
+5.  [Generate static files]
 5.  [Final Deployment Steps and Verification](https://www.google.com/search?q=%23final-deployment-steps-and-verification)
 6.  [Troubleshooting](https://www.google.com/search?q=%23troubleshooting)
 
@@ -206,3 +207,17 @@ If you encounter issues, here are some common troubleshooting steps:
       * Always remember to "Reload" your web app from the "Web" tab after making any code or configuration changes.
 
 -----
+
+## 7./ Generate static files
+
+Generate static files if some new libraries are added which use static file.
+
+```
+python manage.py collectstatic
+```
+
+Move the static file to the root directory folder
+```
+mv static/* staticfiles/
+
+```

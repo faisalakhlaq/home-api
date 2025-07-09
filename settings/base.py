@@ -19,6 +19,7 @@ THIRD_PARTY_APPS: List[str] = [
     "allauth.socialaccount",  # for social authentication
     "dj_rest_auth",
     "dj_rest_auth.registration",
+    "django_filters",
     "corsheaders",
 ]
 BASE_PROJECT_APPS: List[str] = [

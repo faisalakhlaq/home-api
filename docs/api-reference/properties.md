@@ -9,7 +9,7 @@ The Properties API allows managing real estate listings, including:
 - [Fetch user favorite properties](#fetch-user-favorite-properties)
 - [Add to favorite](#add-to-favorite)
 - [Remove from favorite](#remove-from-favorite)
-- [Fetch the data required to create a new property](#get-create-property-form-data)
+- [Fetch the data required to create a new property](#fetch-the-data-required-to-create-a-new-property)
 
 ##### Not allowed
 - **deletion**: It is not allowed to delete a property
