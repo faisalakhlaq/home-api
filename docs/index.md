@@ -46,7 +46,7 @@ This documentation is designed to help you quickly integrate your applications (
     * [How to Upload Property Images](./tutorials/upload-property-images.md)
 
 5.  **Deployment**
-    * [PythonAnywhere Deployment Guide](./deployment/pythonanywhere-deployment.md)
+    * [PythonAnywhere Deployment Guide](./deployment/pythonanywhere.md)
 
 6.  **Additional Resources**
     * [Release Notes](./release-notes.md)
