@@ -1,13 +1,13 @@
-import json
-
 from django.contrib.auth import get_user_model
+from django.contrib.contenttypes.models import ContentType
 from django.test import TestCase
 from django.urls import reverse
 
 from rest_framework.test import APIClient
 from rest_framework.test import APIRequestFactory
 
-from apps.core.models import Address
+from apps.core.models import Address, City, Genre, Status
+from apps.core.serializers import IdNameListSerializer
 from apps.properties.models import Property
 from apps.properties.querysets import property_list_queryset
 from apps.properties.serializers import (
@@ -23,9 +23,10 @@ User = get_user_model()
 class TestPropertyAPI(TestCase):
     @classmethod
     def setUpTestData(cls):
+        super().setUpTestData()
         cls.list_url: str = reverse("apps.properties:properties-list")
         cls.detail_url: str = "apps.properties:properties-detail"
-        cls.property_form: str = reverse(
+        cls.property_form_url: str = reverse(
             "apps.properties:properties-get-create-property-form-data"
         )
 
@@ -44,6 +45,7 @@ class TestPropertyAPI(TestCase):
             "postal_code": "6250",
             "country": "North Mecedonia",
         }
+        cls.property_content_type = ContentType.objects.get_for_model(model=Property)
 
         # Create a test user
         cls.user = User.objects.create_user(
@@ -63,6 +65,30 @@ class TestPropertyAPI(TestCase):
         payload["address"] = Address.objects.create(**address)
         payload.update(params)
         return Property.objects.create(**payload)
+
+    def _create_status(self, name: str, **kwargs) -> Status:
+        """Helper to create a Status object with default values."""
+        payload = {
+            "name": name,
+            "sorting_order": 1,
+            "active": True,
+            "description": f"Status for {name}",
+            "model": self.property_content_type,
+        }
+        payload.update(kwargs)  # Allow overriding defaults
+        return Status.objects.create(**payload)
+
+    def _create_genre(self, name: str, **kwargs) -> Genre:
+        """Helper to create a Genre object with default values."""
+        payload = {
+            "name": name,
+            "sorting_order": 1,
+            "active": True,
+            "description": f"Genre for {name}",
+            "model": self.property_content_type,
+        }
+        payload.update(kwargs)  # Allow overriding defaults
+        return Genre.objects.create(**payload)
 
     def test_prop_property_list(self) -> None:
         p1 = self.create_property()
@@ -116,7 +142,6 @@ class TestPropertyAPI(TestCase):
         payload = {**self.property_payload, "address": self.address_payload}
         res = self.client.post(self.list_url, data=payload, format="json")
         response_data = res.json()
-        print(response_data)
         self.assertEqual(res.status_code, 201)
         self.assertEqual(response_data["owner"], self.user.id)
         self.assertEqual(response_data["price"], 50000)
@@ -161,23 +186,48 @@ class TestPropertyAPI(TestCase):
         self.assertEqual(res.data["price_currency"], "Euro")
         prop.delete()
 
-    # def test_get_create_property_form_data(self)->None:
-    #     # create related objects
-    #     status = create_test_status()
-    #     genre = create_test_genre()
-    #     cities = create_cities()
-    #     res = self.client.get(self.property_form)
-    #     self.assertEqual(res.status_code, 200)
-    #     genre_serializer = IdNameListSerializer(
-    #     Genre.objects.only('id', 'name').order_by('name').values('id', 'name'), many=True)
-    #     status_serializer = IdNameListSerializer(
-    #     Status.objects.only('id', 'name').order_by('name').values('id', 'name'), many=True)
-    #     self.assertEqual(res.data['types'], genre_serializer.data)
-    #     self.assertEqual(res.data['status'], status_serializer.data)
-    #     self.assertEqual(res.data['cities'], City.objects.only('name').values_list('name', flat=True))
-    #     status.delete()
-    #     genre.delete()
-    #     City.objects.filter(id__in=[ci.id for ci in cities]).delete()
+    def test_get_create_property_form_data(self) -> None:
+        self.client.force_authenticate(user=self.user)
+        # create related objects
+        self._create_status(name="For Sale", sorting_order=2)
+        self._create_status(name="Sold", sorting_order=3)
+        self._create_status(name="Rented", sorting_order=1)
+
+        self._create_genre(name="Apartment", sorting_order=1)
+        self._create_genre(name="House", sorting_order=2)
+        self._create_genre(name="Commercial", sorting_order=3)
+
+        cities_to_create = []
+        for i in range(1, 20):
+            cities_to_create.append(City(name=f"City {i}", country="DK"))
+        City.objects.bulk_create(cities_to_create)
+
+        res = self.client.get(self.property_form_url)
+        self.assertEqual(res.status_code, 200)
+
+        # --- Assert Genres ---
+        expected_genres_queryset = (
+            Genre.objects.only("id", "name").order_by("name").values("id", "name")
+        )
+        expected_genres_data = IdNameListSerializer(
+            expected_genres_queryset, many=True
+        ).data
+        self.assertEqual(res.data["types"], expected_genres_data)
+
+        # --- Assert Statuses ---
+        expected_statuses_queryset = (
+            Status.objects.only("id", "name").order_by("name").values("id", "name")
+        )
+        expected_statuses_data = IdNameListSerializer(
+            expected_statuses_queryset, many=True
+        ).data
+        self.assertEqual(res.data["status"], expected_statuses_data)
+
+        # --- Assert Cities ---
+        expected_cities_names = list(
+            City.objects.only("name").order_by("name").values_list("name", flat=True)
+        )
+        self.assertEqual(res.data["cities"], expected_cities_names)
 
     def tearDown(self) -> None:
         return super().tearDown()
