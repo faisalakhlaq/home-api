@@ -18,7 +18,18 @@ jobs:
   build_and_test:
     runs-on: ubuntu-latest
 
-    # Define services needed for the job
+    env:
+      DEBUG: "False"
+      DATABASE_NAME_MYSQL: ${{ vars.DATABASE_NAME_MYSQL }}
+      DATABASE_USER_MYSQL: ${{ vars.DATABASE_USER_MYSQL }}
+      DATABASE_HOST_MYSQL: ${{ vars.DATABASE_HOST_MYSQL }}
+      DATABASE_PORT_MYSQL: ${{ vars.DATABASE_PORT_MYSQL }}
+      DATABASE_PASSWORD: ${{ secrets.DATABASE_PASSWORD }}
+      SECRET_KEY: ${{ secrets.DJANGO_SECRET_KEY }}
+      ALLOWED_HOSTS: ${{ secrets.ALLOWED_HOSTS }}
+      CORS_ALLOWED_ORIGINS: ${{ secrets.CORS_ALLOWED_ORIGINS }}
+      CORS_ALLOW_CREDENTIALS: ${{ vars.CORS_ALLOW_CREDENTIALS }}
+
     services:
       # MySQL service for testing
       mysql:
