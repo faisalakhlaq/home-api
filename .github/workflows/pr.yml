@@ -18,6 +18,24 @@ jobs:
   build_and_test:
     runs-on: ubuntu-latest
 
+    # Define services needed for the job
+    services:
+      # MySQL service for testing
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: root_password
+          MYSQL_DATABASE: test_db
+          MYSQL_USER: test_user
+          MYSQL_PASSWORD: test_password
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping -h 127.0.0.1 -u test_user -p test_password"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=10
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -36,7 +54,6 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-python-
 
-
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
@@ -48,7 +65,7 @@ jobs:
       - name: Install CI/CD tools
         run: |
           pip install -r requirements-dev.txt
-          pip install black isort pip-audit
+          pip install black pip-audit
 
       - name: Run Black
         run: black --check .
@@ -59,10 +76,10 @@ jobs:
       - name: Run MyPy
         run: mypy .
 
-      # Run Isort for import sorting check
+      # Optionally run Isort for import sorting check (remember to deactivate flak8 sorting)
       # Isort sorts imports alphabetically and separates them into sections. --check-only ensures it only reports.
-      - name: Run Isort (check only)
-        run: isort --check-only .
+      # - name: Run Isort (check only)
+      #   run: isort --check-only .
 
       - name: Run Bandit
         run: bandit -r . -ll -f custom -o bandit_report.txt || true # -ll for low confidence, low severity. || true to not fail the workflow immediately.
@@ -82,7 +99,7 @@ jobs:
           DATABASE_NAME_MYSQL: test_db
           DATABASE_USER_MYSQL: test_user
           DATABASE_PASSWORD: test_password
-          DATABASE_HOST_MYSQL: 127.0.0.1 # Host is localhost from the runner's perspective
+          DATABASE_HOST_MYSQL: 127.0.0.1
           DATABASE_PORT_MYSQL: 3306
 
       - name: Run Django tests
@@ -92,11 +109,9 @@ jobs:
           DATABASE_NAME_MYSQL: test_db
           DATABASE_USER_MYSQL: test_user
           DATABASE_PASSWORD: test_password
-          DATABASE_HOST_MYSQL: 127.0.0.1 # Host is localhost from the runner's perspective
+          DATABASE_HOST_MYSQL: 127.0.0.1
           DATABASE_PORT_MYSQL: 3306
-          # Add any other environment variables your Django project needs for tests
-          # e.g., SECRET_KEY, DEBUG, etc.
-          SECRET_KEY: ${{ secrets.DJANGO_SECRET_KEY }} # Use GitHub Secrets for sensitive keys
+          SECRET_KEY: ${{ secrets.DJANGO_SECRET_KEY }}
           DEBUG: "False"
 
       - uses: 5monkeys/cobertura-action@master
