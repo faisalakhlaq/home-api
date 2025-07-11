@@ -31,22 +31,22 @@ jobs:
       CORS_ALLOW_CREDENTIALS: ${{ vars.CORS_ALLOW_CREDENTIALS }}
       DJANGO_SETTINGS_MODULE: "settings.production"
 
-    # services:
-    #   # MySQL service for testing
-    #   mysql:
-    #     image: mysql:8.0
-    #     env:
-    #       MYSQL_ROOT_PASSWORD: ${{ secrets.DATABASE_PASSWORD }}
-    #       MYSQL_DATABASE: ${{ vars.DATABASE_NAME_MYSQL }}
-    #       MYSQL_USER: ${{ vars.DATABASE_USER_MYSQL }}
-    #       MYSQL_PASSWORD: ${{ secrets.DATABASE_PASSWORD }}
-    #     ports:
-    #       - 3306:3306
-    #     options: >-
-    #       --health-cmd="mysqladmin ping -h 127.0.0.1 -u root -p$MYSQL_ROOT_PASSWORD"
-    #       --health-interval=10s
-    #       --health-timeout=5s
-    #       --health-retries=10
+    services:
+      # MySQL service for testing
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: ${{ secrets.DATABASE_PASSWORD }}
+          MYSQL_DATABASE: ${{ vars.DATABASE_NAME_MYSQL }}
+          MYSQL_USER: ${{ vars.DATABASE_USER_MYSQL }}
+          MYSQL_PASSWORD: ${{ secrets.DATABASE_PASSWORD }}
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping -h 127.0.0.1 -u root -p$MYSQL_ROOT_PASSWORD"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=10
 
     steps:
       - name: Checkout repository
@@ -106,25 +106,9 @@ jobs:
       # It runs a dry-run check without actually applying anything.
       - name: Check for pending migrations
         run: python manage.py makemigrations --check --dry-run
-        env:
-          # Provide MySQL environment variables for the migration check
-          DATABASE_NAME_MYSQL: test_db
-          DATABASE_USER_MYSQL: test_user
-          DATABASE_PASSWORD: test_password
-          DATABASE_HOST_MYSQL: 127.0.0.1
-          DATABASE_PORT_MYSQL: 3306
 
       - name: Run Django tests
         run: python manage.py test
-        env:
-          # Provide MySQL environment variables for the tests
-          DATABASE_NAME_MYSQL: test_db
-          DATABASE_USER_MYSQL: test_user
-          DATABASE_PASSWORD: test_password
-          DATABASE_HOST_MYSQL: 127.0.0.1
-          DATABASE_PORT_MYSQL: 3306
-          SECRET_KEY: ${{ secrets.DJANGO_SECRET_KEY }}
-          DEBUG: "False"
 
       - uses: 5monkeys/cobertura-action@master
         with:
