@@ -95,12 +95,16 @@ jobs:
       - name: Check for pending migrations
         run: python manage.py makemigrations --check --dry-run
 
-      - name: Run Django tests
+      - name: Install coverage package
+        run: pip install coverage
+
+      - name: Run tests with coverage
         run: |
-          python manage.py test --noinput
+          coverage run --source='.' manage.py test
+          coverage xml -o coverage.xml  # Generate coverage.xml in root directory
 
       - uses: 5monkeys/cobertura-action@master
-        if: always()  # Run even if previous steps fail
+        if: always()
         with:
-          path: backend/coverage.xml
+          path: coverage.xml
           minimum_coverage: 75
