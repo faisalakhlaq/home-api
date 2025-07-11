@@ -47,6 +47,7 @@ This documentation is designed to help you quickly integrate your applications (
 
 5.  **Deployment**
     * [PythonAnywhere Deployment Guide](./deployment/pythonanywhere.md)
+    * [Dependencies](./deployment/dependencies.md)
 
 6.  **Additional Resources**
     * [Release Notes](./release-notes.md)
