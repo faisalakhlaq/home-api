@@ -32,9 +32,10 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ~/.cache/pip
-          key: ${{ runner.os }}-python-${{ hashFiles('**/requirements.txt') }}
+          key: ${{ runner.os }}-python-${{ hashFiles('**/requirements.txt', '**/requirements-dev.txt') }}
           restore-keys: |
             ${{ runner.os }}-python-
+
 
       - name: Install dependencies
         run: |
@@ -46,7 +47,8 @@ jobs:
       # Install tools for linting, formatting, security, and type checking.
       - name: Install CI/CD tools
         run: |
-          pip install flake8 black isort bandit mypy mypy_django_plugin mypy_drf_plugin pip-audit
+          pip install -r requirements-dev.txt
+          pip install black isort pip-audit
 
       - name: Run Black
         run: black --check .
