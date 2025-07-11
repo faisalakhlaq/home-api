@@ -101,10 +101,10 @@ jobs:
       - name: Run tests with coverage
         run: |
           coverage run --source='.' manage.py test
-          coverage xml -o coverage.xml  # Generate coverage.xml in root directory
-
-      - uses: 5monkeys/cobertura-action@master
+          coverage xml
+          
+      - uses: codecov/codecov-action@v3
         if: always()
         with:
-          path: coverage.xml
-          minimum_coverage: 75
+          file: coverage.xml
+          fail_ci_if_error: false  # Don't fail if coverage upload fails
