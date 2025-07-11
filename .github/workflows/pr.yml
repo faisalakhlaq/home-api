@@ -1,0 +1,95 @@
+name: PR CI Pipeline
+
+on:
+  # Considering the limited number of free github minutes and assuming the
+  # developer knows what they are doing:
+  # Let push directly updated the dev without running the checks.
+  # push:
+  #   branches:
+  #     - development
+  pull_request:
+    branches:
+      - development
+
+  # Allow to run the workflow manually from the Actions tab
+  workflow_dispatch:
+
+jobs:
+  build_and_test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.10
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+
+      # Lets cache dependencies to significantly speed up subsequent runs.
+      - name: Cache Python dependencies
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-python-${{ hashFiles('**/requirements.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-python-
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      # Step 5: Install development/CI tools
+      # Install tools for linting, formatting, security, and type checking.
+      - name: Install CI/CD tools
+        run: |
+          pip install flake8 black isort bandit mypy pip-audit
+
+      - name: Run Black
+        run: black --check .
+
+      - name: Run Flake8
+        run: flake8 . --max-line-length=120
+
+      - name: Run MyPy
+        run: mypy .
+
+      # Step 8: Run Isort for import sorting check
+      # Isort sorts imports alphabetically and separates them into sections. --check-only ensures it only reports.
+      - name: Run Isort (check only)
+        run: isort --check-only .
+
+      - name: Run Bandit
+        run: bandit -r . -ll -f custom -o bandit_report.txt || true # -ll for low confidence, low severity. || true to not fail the workflow immediately.
+
+      # Step 10: Run pip-audit for vulnerable dependencies
+      # Checks your installed Python packages for known vulnerabilities.
+      - name: Run pip-audit
+        run: pip-audit || true # || true to not fail the workflow immediately if minor issues are found
+
+      # Step 11: Check for pending database migrations
+      # This step ensures that all database migrations have been applied or created.
+      # It runs a dry-run check without actually applying anything.
+      - name: Check for pending migrations
+        run: python manage.py makemigrations --check --dry-run
+        env:
+          # Set a dummy database URL for migration check if your settings require it
+          DATABASE_URL: sqlite:///db.sqlite3
+
+      - name: Run Django tests
+        run: python manage.py test
+        env:
+          # Set environment variables required for your Django tests
+          # For CI, it's common to use an in-memory SQLite database for speed.
+          DATABASE_URL: sqlite:///:memory:
+          # Add any other environment variables your Django project needs for tests
+          # e.g., SECRET_KEY, DEBUG, etc.
+          SECRET_KEY: ${{ secrets.DJANGO_SECRET_KEY }}
+          DEBUG: "False"
+
+      - uses: 5monkeys/cobertura-action@master
+        with:
+          path: backend/coverage.xml
+          minimum_coverage: 75
