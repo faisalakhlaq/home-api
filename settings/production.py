@@ -3,7 +3,7 @@
 # production requirements.
 import os
 
-import environ # specifically for pythonganywhere
+import environ  # specifically for pythonganywhere
 
 from .base import *
 
@@ -14,7 +14,7 @@ env = environ.Env(
     DJANGO_CI_ENV=(bool, False),
 )
 
-if not env.bool('DJANGO_CI_ENV'): # Check if DJANGO_CI_ENV is False (i.e., not in CI)
+if not env.bool("DJANGO_CI_ENV"):  # Check if DJANGO_CI_ENV is False (i.e., not in CI)
     environ.Env.read_env(os.path.join(BASE_DIR, ".env"))
 
 DEBUG = env("DEBUG")
