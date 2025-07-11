@@ -9,7 +9,7 @@ class TestGenre(TestCase):
     @classmethod
     def setUpTestData(cls):
         super().setUpTestData()
-        cls.propertyCT = ContentType.objects.get_for_model(model=Property)
+        cls.property_content_type = ContentType.objects.get_for_model(model=Property)
 
     def create_genre(self, **kwargs) -> Genre:
         payload = {
@@ -24,7 +24,7 @@ class TestGenre(TestCase):
 
     def test_create_genre(self) -> None:
         genre = self.create_genre()
-        self.assertEqual(genre.model, self.propertyCT)
+        self.assertEqual(genre.model, self.property_content_type)
         self.assertEqual(genre.name, "Appartment")
         self.assertEqual(genre.sorting_order, 2)
         self.assertEqual(genre.description, "An appartment in a building.")
