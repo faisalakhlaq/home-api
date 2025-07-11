@@ -52,18 +52,6 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Wait for MySQL
-        run: |
-          for i in {1..30}; do
-            if mysqladmin ping -h mysql -u${{ vars.DATABASE_USER_MYSQL }} -p${{ secrets.DATABASE_PASSWORD }}; then
-              echo "MySQL is ready!"
-              break
-            fi
-            echo "Waiting for MySQL... attempt $i"
-            sleep 2
-          done
-          mysqladmin ping -h mysql -u${{ vars.DATABASE_USER_MYSQL }} -p${{ secrets.DATABASE_PASSWORD }} || { echo "MySQL did not become ready in time. Exiting."; exit 1; }
-
       - name: Set up Python 3.10
         uses: actions/setup-python@v5
         with:
@@ -83,6 +71,18 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
           pip install -r requirements-prod.txt
+
+      - name: Wait for MySQL
+        run: |
+          for i in {1..30}; do
+            if mysqladmin ping -h mysql -u${{ vars.DATABASE_USER_MYSQL }} -p${{ secrets.DATABASE_PASSWORD }}; then
+              echo "MySQL is ready!"
+              break
+            fi
+            echo "Waiting for MySQL... attempt $i"
+            sleep 2
+          done
+          mysqladmin ping -h mysql -u${{ vars.DATABASE_USER_MYSQL }} -p${{ secrets.DATABASE_PASSWORD }} || { echo "MySQL did not become ready in time. Exiting."; exit 1; }
 
       # Install development/CI tools
       # Install tools for linting, formatting, security, and type checking.
