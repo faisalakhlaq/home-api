@@ -46,7 +46,7 @@ jobs:
       # Install tools for linting, formatting, security, and type checking.
       - name: Install CI/CD tools
         run: |
-          pip install flake8 black isort bandit mypy pip-audit
+          pip install flake8 black isort bandit mypy mypy_django_plugin mypy_drf_plugin pip-audit
 
       - name: Run Black
         run: black --check .
