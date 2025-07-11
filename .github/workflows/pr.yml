@@ -31,22 +31,22 @@ jobs:
       CORS_ALLOW_CREDENTIALS: ${{ vars.CORS_ALLOW_CREDENTIALS }}
       DJANGO_SETTINGS_MODULE: "settings.production"
 
-    services:
-      # MySQL service for testing
-      mysql:
-        image: mysql:8.0
-        env:
-          MYSQL_ROOT_PASSWORD: ${{ secrets.DATABASE_PASSWORD }}
-          MYSQL_DATABASE: ${{ vars.DATABASE_NAME_MYSQL }}
-          MYSQL_USER: ${{ vars.DATABASE_USER_MYSQL }}
-          MYSQL_PASSWORD: ${{ secrets.DATABASE_PASSWORD }}
-        ports:
-          - 3306:3306
-        options: >-
-          --health-cmd="mysqladmin ping -h 127.0.0.1 -u root -p$MYSQL_ROOT_PASSWORD"
-          --health-interval=10s
-          --health-timeout=5s
-          --health-retries=10
+    # services:
+    #   # MySQL service for testing
+    #   mysql:
+    #     image: mysql:8.0
+    #     env:
+    #       MYSQL_ROOT_PASSWORD: ${{ secrets.DATABASE_PASSWORD }}
+    #       MYSQL_DATABASE: ${{ vars.DATABASE_NAME_MYSQL }}
+    #       MYSQL_USER: ${{ vars.DATABASE_USER_MYSQL }}
+    #       MYSQL_PASSWORD: ${{ secrets.DATABASE_PASSWORD }}
+    #     ports:
+    #       - 3306:3306
+    #     options: >-
+    #       --health-cmd="mysqladmin ping -h 127.0.0.1 -u root -p$MYSQL_ROOT_PASSWORD"
+    #       --health-interval=10s
+    #       --health-timeout=5s
+    #       --health-retries=10
 
     steps:
       - name: Checkout repository
