@@ -2,8 +2,7 @@ name: PR CI Pipeline
 
 on:
   pull_request:
-    branches:
-      - development
+    branches: [development]
   workflow_dispatch:
 
 jobs:
@@ -46,63 +45,83 @@ jobs:
         with:
           python-version: '3.10'
 
-      - name: Cache Python dependencies
+      # - name: Cache Python dependencies
+      #   uses: actions/cache@v4
+      #   with:
+      #     path: ~/.cache/pip
+      #     key: ${{ runner.os }}-python-${{ hashFiles('**/requirements.txt', '**/requirements-dev.txt', '**/requirements-prod.txt') }}
+      #     restore-keys: |
+      #       ${{ runner.os }}-python-
+
+      - name: Cache dependencies
         uses: actions/cache@v4
         with:
           path: ~/.cache/pip
-          key: ${{ runner.os }}-python-${{ hashFiles('**/requirements.txt', '**/requirements-dev.txt', '**/requirements-prod.txt') }}
-          restore-keys: |
-            ${{ runner.os }}-python-
+          key: ${{ runner.os }}-python-${{ hashFiles('**/requirements*.txt') }}
 
-      - name: Install dependencies
+      - name: Install all dependencies
         run: |
-          python -m pip install --upgrade pip
-          pip install -r requirements.txt
-          pip install -r requirements-prod.txt
+          pip install --upgrade pip
+          pip install -r requirements.txt -r requirements-prod.txt -r requirements-dev.txt
+
+      # - name: Wait for MySQL
+      #   run: |
+      #     for i in {1..30}; do
+      #       if mysqladmin ping -h 127.0.0.1 -uroot -proot --silent; then
+      #         echo "MySQL is ready!"
+      #         break
+      #       fi
+      #       echo "Waiting for MySQL... attempt $i"
+      #       sleep 2
+      #     done
+      #     mysqladmin ping -h 127.0.0.1 -uroot -proot --silent || { echo "MySQL did not become ready in time. Exiting."; exit 1; }
 
       - name: Wait for MySQL
         run: |
           for i in {1..30}; do
-            if mysqladmin ping -h 127.0.0.1 -uroot -proot --silent; then
-              echo "MySQL is ready!"
-              break
-            fi
-            echo "Waiting for MySQL... attempt $i"
-            sleep 2
+            mysqladmin ping -h 127.0.0.1 -uroot -proot --silent && break
+            echo "Waiting for MySQL... attempt $i"; sleep 2
           done
-          mysqladmin ping -h 127.0.0.1 -uroot -proot --silent || { echo "MySQL did not become ready in time. Exiting."; exit 1; }
+          mysqladmin ping -h 127.0.0.1 -uroot -proot --silent || exit 1
 
-      - name: Install CI/CD tools
-        run: |
-          pip install -r requirements-dev.txt
-          pip install black pip-audit
-
-      - name: Run Black
-        run: black --check .
+      # --- Quality Checks ---
+      - name: Run Black (Code Formatting)
+        run: black --check . --diff  # Show diffs on failure
 
       - name: Run Flake8
-        run: flake8 . --max-line-length=120
+        run: flake8 . --max-line-length=120 --statistics
 
-      - name: Run MyPy
-        run: mypy .
+      - name: Run MyPy (Static Typing)
+        run: mypy . --show-error-codes
 
-      - name: Run Bandit
-        run: bandit -r . -ll -f custom -o bandit_report.txt || true
+      - name: Check outdated dependencies
+        run: pip list --outdated
 
-      - name: Run pip-audit
-        run: pip-audit || true
+      - name: Check code complexity (strict mode)
+        run: radon cc . -nc --min B
 
-      - name: Check for pending migrations
-        run: python manage.py makemigrations --check --dry-run
+      - name: Security scans
+        run: |
+          bandit -r . -ll -o bandit_report.txt
+          pip-audit
 
-      - name: Install coverage package
-        run: pip install coverage
+      # - name: Run Bandit (Security)
+      #   run: bandit -r . -ll -f custom -o bandit_report.txt || true
+
+      # - name: Run pip-audit (vulnerable dependencies)
+      #   run: pip-audit || true
+
+      # --- Django Checks ---
+      - name: Validate Django
+        run: |
+          python manage.py check
+          python manage.py makemigrations --check --dry-run
 
       - name: Run tests with coverage
         run: |
           coverage run --source='.' manage.py test
           coverage xml
-          
+
       - uses: codecov/codecov-action@v3
         if: always()
         with:
