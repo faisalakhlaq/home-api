@@ -55,7 +55,6 @@ jobs:
       - name: Wait for MySQL
         run: |
           for i in {1..30}; do
-            # Use mysqladmin ping to check database readiness
             if mysqladmin ping -h mysql -u${{ vars.DATABASE_USER_MYSQL }} -p${{ secrets.DATABASE_PASSWORD }}; then
               echo "MySQL is ready!"
               break
