@@ -3,6 +3,10 @@ name: PR CI Pipeline
 on:
   pull_request:
     branches: [development]
+
+  # push: # For now allow direct push on development without running the checks
+  #   branches: [development]
+
   workflow_dispatch:
 
 jobs:
@@ -45,14 +49,6 @@ jobs:
         with:
           python-version: '3.10'
 
-      # - name: Cache Python dependencies
-      #   uses: actions/cache@v4
-      #   with:
-      #     path: ~/.cache/pip
-      #     key: ${{ runner.os }}-python-${{ hashFiles('**/requirements.txt', '**/requirements-dev.txt', '**/requirements-prod.txt') }}
-      #     restore-keys: |
-      #       ${{ runner.os }}-python-
-
       - name: Cache dependencies
         uses: actions/cache@v4
         with:
@@ -63,18 +59,6 @@ jobs:
         run: |
           pip install --upgrade pip
           pip install -r requirements.txt -r requirements-prod.txt -r requirements-dev.txt
-
-      # - name: Wait for MySQL
-      #   run: |
-      #     for i in {1..30}; do
-      #       if mysqladmin ping -h 127.0.0.1 -uroot -proot --silent; then
-      #         echo "MySQL is ready!"
-      #         break
-      #       fi
-      #       echo "Waiting for MySQL... attempt $i"
-      #       sleep 2
-      #     done
-      #     mysqladmin ping -h 127.0.0.1 -uroot -proot --silent || { echo "MySQL did not become ready in time. Exiting."; exit 1; }
 
       - name: Wait for MySQL
         run: |
@@ -107,12 +91,7 @@ jobs:
         run: |
           bandit -r . -ll -o bandit_report.txt
           pip-audit
-
-      # - name: Run Bandit (Security)
-      #   run: bandit -r . -ll -f custom -o bandit_report.txt || true
-
-      # - name: Run pip-audit (vulnerable dependencies)
-      #   run: pip-audit || true
+        # pip-audit || true
 
       # --- Django Checks ---
       - name: Validate Django
