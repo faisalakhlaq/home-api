@@ -1,4 +1,4 @@
-from misc import random_string_generator
+from .misc import random_string_generator
 
 
 __all__ = [
