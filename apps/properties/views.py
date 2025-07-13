@@ -16,10 +16,10 @@ from rest_framework.status import (
     HTTP_400_BAD_REQUEST,
     HTTP_405_METHOD_NOT_ALLOWED,
 )
-from rest_framework.viewsets import ModelViewSet
 
 from apps.core.models import City, Genre, Status
 from apps.core.serializers import IdNameListSerializer
+from apps.core.views import BaseAPIViewSet
 from apps.users.models import UserFavoriteProperty
 from apps.properties.models import Property
 from apps.properties.querysets import (
@@ -69,7 +69,7 @@ class PropertyFilter(filters.FilterSet):  # type: ignore
         fields = ("total_rooms",)
 
 
-class PropertyViewSet(ModelViewSet):  # type: ignore
+class PropertyViewSet(BaseAPIViewSet[Property]):
     """CRUD API for properties.
 
     The viewset contains following extra actions:
@@ -160,8 +160,17 @@ class PropertyViewSet(ModelViewSet):  # type: ignore
     """
 
     permission_classes = [IsAuthenticatedOrReadOnly]
-    filter_backends = (filters.DjangoFilterBackend,)
     filterset_class = PropertyFilter
+    ordering_fields = [
+        "id",
+        "created_at",
+        "price",
+        "area",
+        "total_rooms",
+        "construction_year",
+    ]
+
+    ordering = ["-id"]
 
     def get_queryset(self) -> QuerySet[Property]:
         if self.action == "list":
