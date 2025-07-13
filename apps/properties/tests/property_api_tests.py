@@ -251,13 +251,12 @@ class TestPropertyAPI(TestCase):
         self.assertEqual(res.status_code, 200)
         data = res.json()
 
-        p_ids = sorted([p1.id, p2.id, p3.id], reverse=True) # Sort in descending order
+        p_ids = sorted([p1.id, p2.id, p3.id], reverse=True)  # Sort in descending order
 
         # Check the order of IDs returned by the API
         self.assertEqual(data[0]["id"], p_ids[0])
         self.assertEqual(data[1]["id"], p_ids[1])
         self.assertEqual(data[2]["id"], p_ids[2])
-
 
     def test_property_ordering_by_price_asc(self) -> None:
         """
@@ -358,7 +357,7 @@ class TestPropertyAPI(TestCase):
         self.assertEqual(res.status_code, 200)
         data = res.json()
 
-        p_ids = sorted([p1.id, p2.id, p3.id], reverse=True) # Sort in descending order
+        p_ids = sorted([p1.id, p2.id, p3.id], reverse=True)  # Sort in descending order
 
         # Check the order of IDs returned by the API
         self.assertEqual(data[0]["id"], p_ids[0])
