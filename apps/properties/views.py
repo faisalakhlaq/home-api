@@ -170,6 +170,8 @@ class PropertyViewSet(BaseAPIViewSet[Property]):
         "construction_year",
     ]
 
+    ordering = ["-id"]
+
     def get_queryset(self) -> QuerySet[Property]:
         if self.action == "list":
             if hasattr(self.request, "user") and self.request.user.is_authenticated:
