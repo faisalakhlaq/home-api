@@ -1,3 +1,5 @@
+from datetime import datetime, timezone
+
 from django.contrib.auth import get_user_model
 from django.contrib.contenttypes.models import ContentType
 from django.test import TestCase
@@ -228,6 +230,135 @@ class TestPropertyAPI(TestCase):
             City.objects.only("name").order_by("name").values_list("name", flat=True)
         )
         self.assertEqual(res.data["cities"], expected_cities_names)
+
+    def test_property_default_ordering(self) -> None:
+        """
+        Tests if the default ordering (-id) works correctly.
+        """
+        # Create properties with different creation times/ids
+        # Property created later should have a higher ID and thus appear first by default
+        p1 = self.create_property(
+            price=100, created_at=datetime(2023, 1, 1, tzinfo=timezone.utc)
+        )
+        p2 = self.create_property(
+            price=200, created_at=datetime(2023, 1, 2, tzinfo=timezone.utc)
+        )
+        p3 = self.create_property(
+            price=300, created_at=datetime(2023, 1, 3, tzinfo=timezone.utc)
+        )
+
+        res = self.client.get(self.list_url)
+        self.assertEqual(res.status_code, 200)
+        data = res.json()
+
+        # Check the order of IDs. Default is -id, so p3, p2, p1
+        self.assertEqual(data[0]["id"], p3.id)
+        self.assertEqual(data[1]["id"], p2.id)
+        self.assertEqual(data[2]["id"], p1.id)
+
+    def test_property_ordering_by_price_asc(self) -> None:
+        """
+        Tests ordering by 'price' in ascending order.
+        """
+        p1 = self.create_property(
+            price=300, created_at=datetime(2023, 1, 1, tzinfo=timezone.utc)
+        )
+        p2 = self.create_property(
+            price=100, created_at=datetime(2023, 1, 2, tzinfo=timezone.utc)
+        )  # Lowest price
+        p3 = self.create_property(
+            price=200, created_at=datetime(2023, 1, 3, tzinfo=timezone.utc)
+        )
+
+        res = self.client.get(f"{self.list_url}?ordering=price")
+        self.assertEqual(res.status_code, 200)
+        data = res.json()
+
+        # Expected order: p2 (100), p3 (200), p1 (300)
+        self.assertEqual(data[0]["id"], p2.id)
+        self.assertEqual(data[1]["id"], p3.id)
+        self.assertEqual(data[2]["id"], p1.id)
+
+    def test_property_ordering_by_price_desc(self) -> None:
+        """
+        Tests ordering by 'price' in descending order.
+        """
+        p1 = self.create_property(
+            price=300, created_at=datetime(2023, 1, 1, tzinfo=timezone.utc)
+        )  # Highest price
+        p2 = self.create_property(
+            price=100, created_at=datetime(2023, 1, 2, tzinfo=timezone.utc)
+        )
+        p3 = self.create_property(
+            price=200, created_at=datetime(2023, 1, 3, tzinfo=timezone.utc)
+        )
+
+        res = self.client.get(f"{self.list_url}?ordering=-price")
+        self.assertEqual(res.status_code, 200)
+        data = res.json()
+
+        # Expected order: p1 (300), p3 (200), p2 (100)
+        self.assertEqual(data[0]["id"], p1.id)
+        self.assertEqual(data[1]["id"], p3.id)
+        self.assertEqual(data[2]["id"], p2.id)
+
+    def test_property_ordering_multiple_fields(self) -> None:
+        """
+        Tests ordering by multiple fields (e.g., total_rooms, then -price).
+        """
+        # Properties with same total_rooms but different prices
+        p1 = self.create_property(
+            total_rooms=3,
+            price=300,
+            created_at=datetime(2023, 1, 1, tzinfo=timezone.utc),
+        )
+        p2 = self.create_property(
+            total_rooms=2,
+            price=100,
+            created_at=datetime(2023, 1, 2, tzinfo=timezone.utc),
+        )
+        p3 = self.create_property(
+            total_rooms=3,
+            price=200,
+            created_at=datetime(2023, 1, 3, tzinfo=timezone.utc),
+        )  # Same rooms as p1, lower price
+
+        res = self.client.get(f"{self.list_url}?ordering=total_rooms,-price")
+        self.assertEqual(res.status_code, 200)
+        data = res.json()
+
+        # Expected order:
+        # p2 (2 rooms) first
+        # Then, p1 (3 rooms, 300 price) and p3 (3 rooms, 200 price)
+        # For p1 and p3, -price means p1 comes before p3.
+        # Order: p2, p1, p3
+        self.assertEqual(data[0]["id"], p2.id)
+        self.assertEqual(data[1]["id"], p1.id)
+        self.assertEqual(data[2]["id"], p3.id)
+
+    def test_property_invalid_ordering_field(self) -> None:
+        """
+        Tests that an invalid ordering field is ignored and default ordering applies.
+        """
+        p1 = self.create_property(
+            price=100, created_at=datetime(2023, 1, 1, tzinfo=timezone.utc)
+        )
+        p2 = self.create_property(
+            price=200, created_at=datetime(2023, 1, 2, tzinfo=timezone.utc)
+        )
+        p3 = self.create_property(
+            price=300, created_at=datetime(2023, 1, 3, tzinfo=timezone.utc)
+        )
+
+        # 'non_existent_field' is not in ordering_fields
+        res = self.client.get(f"{self.list_url}?ordering=non_existent_field")
+        self.assertEqual(res.status_code, 200)
+        data = res.json()
+
+        # Should revert to default ordering: -id (p3, p2, p1)
+        self.assertEqual(data[0]["id"], p3.id)
+        self.assertEqual(data[1]["id"], p2.id)
+        self.assertEqual(data[2]["id"], p1.id)
 
     def tearDown(self) -> None:
         return super().tearDown()
