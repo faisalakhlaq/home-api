@@ -1,4 +1,4 @@
-from typing import Any, Type, TypeVar
+from typing import Any, Type
 
 from django_filters import rest_framework as filters
 
@@ -9,17 +9,17 @@ from rest_framework.generics import get_object_or_404
 from rest_framework.permissions import IsAuthenticated, IsAuthenticatedOrReadOnly
 from rest_framework.response import Response
 from rest_framework.request import Request
-from rest_framework.serializers import BaseSerializer
+from rest_framework.serializers import ModelSerializer
 from rest_framework.status import (
     HTTP_200_OK,
     HTTP_204_NO_CONTENT,
     HTTP_400_BAD_REQUEST,
     HTTP_405_METHOD_NOT_ALLOWED,
 )
-from rest_framework.viewsets import ModelViewSet
 
 from apps.core.models import City, Genre, Status
 from apps.core.serializers import IdNameListSerializer
+from apps.core.views import BaseAPIViewSet
 from apps.users.models import UserFavoriteProperty
 from apps.properties.models import Property
 from apps.properties.querysets import (
@@ -69,7 +69,7 @@ class PropertyFilter(filters.FilterSet):  # type: ignore
         fields = ("total_rooms",)
 
 
-class PropertyViewSet(ModelViewSet):  # type: ignore
+class PropertyViewSet(BaseAPIViewSet[Property]):
     """CRUD API for properties.
 
     The viewset contains following extra actions:
@@ -160,10 +160,17 @@ class PropertyViewSet(ModelViewSet):  # type: ignore
     """
 
     permission_classes = [IsAuthenticatedOrReadOnly]
-    filter_backends = (filters.DjangoFilterBackend,)
     filterset_class = PropertyFilter
+    ordering_fields = [
+        "id",
+        "created_at",
+        "price",
+        "area",
+        "total_rooms",
+        "construction_year",
+    ]
 
-    _MT_co = TypeVar("_MT_co", covariant=True)
+    ordering = ["-id"]
 
     def get_queryset(self) -> QuerySet[Property]:
         if self.action == "list":
@@ -171,30 +178,22 @@ class PropertyViewSet(ModelViewSet):  # type: ignore
                 return property_list_queryset(user_id=self.request.user.id)
             else:
                 return property_list_queryset()
-        elif self.action in [
-            "get-create-property-form-data",
-            "get_create_property_form_data",
-        ]:
+        elif self.action == "get_create_property_form_data":
             return Property.objects.none()
-        elif self.action in [
-            "user_favorite_properties",
-            "user-favorite-properties",
-        ]:
+        elif self.action == "user_favorite_properties":
             return user_favorite_properties_qs(user_id=self.request.user.id)  # type: ignore
-        elif self.action in ["add-to-favorites", "add_to_favorites"]:
+        elif self.action == "add_to_favorites":
             return Property.objects.none()
         else:
             return Property.objects.select_related("address").prefetch_related(
                 "property_images"
             )
 
-    def get_serializer_class(self) -> Type[BaseSerializer[_MT_co]]:
+    def get_serializer_class(self) -> Type[ModelSerializer[Property]]:
         if self.action in [
             "list",
-            "add-to-favorites",
             "add_to_favorites",
             "user_favorite_properties",
-            "user-favorite-properties",
         ]:
             return PropertyListSerializer
         elif self.action == "retrieve":
@@ -230,7 +229,11 @@ class PropertyViewSet(ModelViewSet):  # type: ignore
         data = {
             "types": genre_serializer.data,
             "status": status_serializer.data,
-            "cities": City.objects.only("name").values_list("name", flat=True),
+            "cities": list(
+                City.objects.only("name")
+                .order_by("name")
+                .values_list("name", flat=True)
+            ),
         }
         return Response(data=data, status=HTTP_200_OK)
 
@@ -280,7 +283,7 @@ class PropertyViewSet(ModelViewSet):  # type: ignore
         )
         serializer = self.get_serializer(
             property_list_queryset(
-                filter=[property_obj.id], user_id=request.user.id  # type: ignore
+                filter=[property_obj.id], user_id=request.user.id
             ).first()
         )
         return Response(data=serializer.data, status=HTTP_200_OK)

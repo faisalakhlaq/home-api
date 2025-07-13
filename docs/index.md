@@ -21,6 +21,8 @@ This documentation is designed to help you quickly integrate your applications (
     * [Installation & Setup](./getting-started/installation.md)
     * [Authentication](./getting-started/authentication.md)
     * [Testing the API](./getting-started/testing.md)
+    * [Contribute](./getting-started/contribute.md)
+    * [Branching Strategy](./getting-started/branching-strategy.md)
 
 2.  **API Reference**
     * [Properties API](./api-reference/properties.md)
@@ -39,6 +41,7 @@ This documentation is designed to help you quickly integrate your applications (
     * [Authentication Methods](./concepts/authentication-methods.md)
     * [Error Handling & Status Codes](./concepts/error-handling.md)
     * [Pagination & Filtering](./concepts/pagination-filtering.md)
+    * [Workflows](./concepts/github-workflows.md)
 
 4.  **Tutorials**
     * [How to Register a New User](./tutorials/register-user.md)
@@ -47,8 +50,8 @@ This documentation is designed to help you quickly integrate your applications (
 
 5.  **Deployment**
     * [PythonAnywhere Deployment Guide](./deployment/pythonanywhere.md)
+    * [Dependencies](./deployment/dependencies.md)
 
 6.  **Additional Resources**
     * [Release Notes](./release-notes.md)
-    * [Contributing to Balkan API](./contribute.md)
-    * [Support & Contact](#) *(Link to a support email or forum)*
+    * [Contributing to Balkan API](./getting-started/contribute.md)
