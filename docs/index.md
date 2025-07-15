@@ -9,7 +9,7 @@ This documentation is designed to help you quickly integrate your applications (
 ## Quick Links
 
 * **[Getting Started](./getting-started/installation.md)**: Set up your environment and make your first API call.
-* **[API Reference](./api-reference/properties.md)**: Explore all available endpoints, request/response formats, and examples.
+* **[API Reference](./api-reference/auto-generated-docs.md)**: Explore all available endpoints, request/response formats, and examples.
 * **[Authentication](./getting-started/authentication.md)**: Learn how to authenticate your requests securely.
 * **[Data Models](./concepts/data-models.md)**: Understand the core data structures used in the API.
 
@@ -25,6 +25,7 @@ This documentation is designed to help you quickly integrate your applications (
     * [Branching Strategy](./getting-started/branching-strategy.md)
 
 2.  **API Reference**
+    * [API Reference](./api-reference/auto-generated-docs.md)
     * [Properties API](./api-reference/properties.md)
         * [`GET /properties/`](./api-reference/properties.md#list-properties)
         * [`GET /properties/{id}/`](./api-reference/properties.md#retrieve-property)

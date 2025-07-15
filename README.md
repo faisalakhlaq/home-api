@@ -8,6 +8,14 @@ Balkan API is a Django REST Framework project that serves as the backend for a r
 * User authentication and authorization
 * Management of user favorite properties
 
+
+## Developer Documentation
+
+For detailed installation instructions (including virtual environment setup), API endpoint specifications, and integration guides, please refer to our official developer documentation:
+
+- [Developer Documentation Index](./docs/index.md)
+- [API Reference](./docs/api-reference/auto-generated-docs.md)
+
 ## Getting Started (with Docker Compose)
 
 The quickest way to get the Balkan API running for local development is using Docker Compose.
@@ -58,12 +66,6 @@ The quickest way to get the Balkan API running for local development is using Do
 
 The API will be available at `http://localhost:8000/`.
 
-## Developer Documentation
-
-For detailed installation instructions (including virtual environment setup), API endpoint specifications, and integration guides, please refer to our official developer documentation:
-
-- [Go to Developer Documentation](./docs/index.md)
-
 ## Makefile Commands
 
 For convenience, several common development tasks are available via `make` commands when running with Docker Compose:
@@ -87,6 +89,6 @@ To use these, prefix them with `docker compose exec backend` (e.g., `docker comp
 
 ## License
 
-This project is licensed under the MIT License - see the [LICENSE.md](LICENSE.md) file for details.
+Propritary
 
 ## Acknowledgments
