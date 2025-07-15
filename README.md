@@ -89,6 +89,6 @@ To use these, prefix them with `docker compose exec backend` (e.g., `docker comp
 
 ## License
 
-Propritary
+Proprietary
 
 ## Acknowledgments
