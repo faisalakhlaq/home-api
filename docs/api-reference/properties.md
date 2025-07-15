@@ -16,6 +16,21 @@ The Properties API allows managing real estate listings, including:
 
 ---
 
+## Filtering
+Properties API supports filtering for following fields:
+1. total_rooms
+2. genre: genre is same as type but it works with ids e.g. genre=1 will
+return all the `Property` objects that have type=1
+3. type: type works with the string types
+4. city
+5. country
+6. min_price
+7. max_price
+8. min_area
+9. max_area
+
+---
+
 ## List Properties
 
 `GET api/v1/properties/properties/`
