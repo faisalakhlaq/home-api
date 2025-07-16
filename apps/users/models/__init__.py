@@ -1,7 +1,5 @@
-from .users import User
-from .favorite import UserFavoriteProperty
+from .user import User
 
 __all__ = [
     "User",
-    "UserFavoriteProperty",
 ]

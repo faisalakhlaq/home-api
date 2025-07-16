@@ -16,7 +16,7 @@ The Swagger UI provides a comprehensive and interactive interface where you can:
 ##### Access Swagger UI:
 
   * Development (Local): [Localhost](http://localhost:8000/api/v1/schema/swagger-ui/)
-  * Production: [Production Swagger URL](https://faisalakhlaq.pythonanywhere.com/api/v1/swagger-ui/)
+  * Production: [Production Swagger URL](https://faisalakhlaq.pythonanywhere.com/api/v1/schema/swagger-ui/)
 
 ## 2\. ReDoc
 
@@ -25,7 +25,7 @@ ReDoc offers an alternative, highly readable, and single-page documentation expe
 ##### Access ReDoc:
 
   * Development (Local): [Localhost](http://localhost:8000/api/v1/schema/redoc/)
-  * Production: [Production ReDoc URL](https://faisalakhlaq.pythonanywhere.com/api/v1/properties/properties/1/)
+  * Production: [Production ReDoc URL](https://faisalakhlaq.pythonanywhere.com/api/v1/schema/redoc/)
 
 ## How is this documentation generated?
 

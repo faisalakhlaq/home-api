@@ -27,6 +27,7 @@ BASE_PROJECT_APPS: List[str] = [
     "apps.users",
     "apps.core",
     "apps.properties",
+    "apps.favorites",
 ]
 INSTALLED_APPS = (
     [
@@ -147,7 +148,6 @@ SIMPLE_JWT = {
     "ALGORITHM": "HS512",
 }
 
-ACCOUNT_EMAIL_REQUIRED = False
 ACCOUNT_EMAIL_VERIFICATION = "none"
 
 SPECTACULAR_SETTINGS = {
@@ -155,4 +155,18 @@ SPECTACULAR_SETTINGS = {
     "DESCRIPTION": "API for Balkan home project.",
     "VERSION": "1.0.0",
     "SERVE_INCLUDE_SCHEMA": False,
+}
+
+# django-allauth settings for signup fields
+ACCOUNT_SIGNUP_FIELDS = {
+    "username": {"required": True, "label": "Username", "widget": "input"},
+    "email": {"required": False, "label": "Email Address", "widget": "email"},
+    "first_name": {
+        "required": False,
+        "label": "First Name",
+    },
+    "last_name": {
+        "required": False,
+        "label": "Last Name",
+    },
 }

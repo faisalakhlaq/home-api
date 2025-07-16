@@ -3,7 +3,7 @@ from typing import List
 from django.db.models import BooleanField, Case, Prefetch, QuerySet, When
 
 from apps.core.models import Address
-from apps.users.models import UserFavoriteProperty
+from apps.favorites.models import UserFavoriteProperty
 from apps.properties.models import Property, PropertyImage
 
 
@@ -74,19 +74,4 @@ def property_list_queryset(
             default=False,
             output_field=BooleanField(),
         )
-    )
-
-
-def user_favorite_properties_qs(user_id: int) -> QuerySet[Property]:
-    if not user_id or not UserFavoriteProperty.objects.filter(user=user_id).exists():
-        return Property.objects.none()
-
-    return property_list_queryset(
-        # convert queryset to list to avoid mypy error
-        filter=list(
-            UserFavoriteProperty.objects.filter(user=user_id).values_list(
-                "property", flat=True
-            )
-        ),
-        user_id=user_id,
     )
