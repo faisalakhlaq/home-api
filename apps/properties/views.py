@@ -4,17 +4,27 @@ from django_filters import rest_framework as filters
 
 from django.db.models import QuerySet
 
+from drf_spectacular.utils import (
+    OpenApiExample,
+    OpenApiResponse,
+    extend_schema,
+    inline_serializer,
+)
+
 from rest_framework.decorators import action
 from rest_framework.generics import get_object_or_404
 from rest_framework.permissions import IsAuthenticated, IsAuthenticatedOrReadOnly
 from rest_framework.response import Response
 from rest_framework.request import Request
-from rest_framework.serializers import ModelSerializer
+from rest_framework.serializers import CharField as SerCharField, ModelSerializer
 from rest_framework.status import (
     HTTP_200_OK,
     HTTP_204_NO_CONTENT,
     HTTP_400_BAD_REQUEST,
+    HTTP_401_UNAUTHORIZED,
+    HTTP_404_NOT_FOUND,
     HTTP_405_METHOD_NOT_ALLOWED,
+    HTTP_409_CONFLICT,
 )
 
 from apps.core.models import City, Genre, Status
@@ -70,93 +80,14 @@ class PropertyFilter(filters.FilterSet):  # type: ignore
 
 
 class PropertyViewSet(BaseAPIViewSet[Property]):
-    """CRUD API for properties.
+    """API endpoint that allows properties to be viewed or edited.
 
-    The viewset contains following extra actions:
-    * get-create-property-form-data
+    This viewset handles comprehensive property management, including
+    listing, creation, retrieval, updates, and deletion of property records.
+    It supports nested creation/updates for associated addresses and images.
 
-    POST Payload
-    ------------
-    >>> {
-        "price": 10,
-        "price_currency": "EUR",
-        "area": 10,
-        "total_area": 12,
-        "measured_area": 11,
-        "total_rooms": 1,
-        "toilets": 1,
-        "construction_year": 1900,
-        "renovation_year": 1950,
-        "total_floors": 1,
-        "heating": "Central heating with one heating unit.",
-        "outer_walls": "Brick",
-        "roof_type": "Tile",
-        "address": {},
-        "property_images": []
-    }
-    >>> Address payload within properties POST:
-    {
-        "street": "Some street, building number, floor 1"
-        "city": "City name"
-        "region": "region name"
-        "postal_code": "12345"
-        "country": "Country Name"
-    }
-    >>> Images payload within properties POST:
-    [
-        {
-            "title": "Optional",
-            "description": "Optional",
-            "is_primary": false,
-            "image": File,
-        },
-        ............,
-        ............
-    ]
-
-    List Response
-    -------------
-    A list of multiple properties is returned with all the details about each
-    property along with their address details.
-    >>> [
-        {
-            id,
-            type,
-            created_at,
-            images,
-            price,
-            address:{
-                zip_code,
-                street,
-                city,
-            },
-            currency,
-        },
-        ............,
-        ............
-    ]
-
-    Filtering
-    ---------
-    Properties API supports filtering for following fields:
-    1. total_rooms
-    2. genre: genre is same as type but it works with ids e.g. genre=1 will
-    return all the `Property` objects that have type=1
-    3. type: type works with the string types
-    4. city
-    5. country
-    6. min_price
-    7. max_price
-    8. min_area
-    9. max_area
-
-    get-create-property-form-data
-    -----------------------------
-    A get call that returns the data for filling the `Property` form. Returned
-    data includes:
-    1. Genre List[Dict[int, str]]: A list containing valid `Type` [[id, name]]
-    2. City List[str]: A list of cities to select from.
-    3. Status List[Dict[int, str]]: List containig valid `Status` [{id, name}]
+    For detailed information on request/response formats, filtering options,
+    and available actions, please refer to the auto-generated API schema.
     """
 
     permission_classes = [IsAuthenticatedOrReadOnly]
@@ -237,6 +168,48 @@ class PropertyViewSet(BaseAPIViewSet[Property]):
         }
         return Response(data=data, status=HTTP_200_OK)
 
+    @extend_schema(
+        summary="Get Favorite Properties",
+        description="Retrieves a list of properties marked as favorite by the currently authenticated user.",
+        examples=[
+            OpenApiExample(
+                "Favorite Properties List Example",
+                value=[
+                    {
+                        "id": 101,
+                        "type": "Apartment",
+                        "description": "Spacious 3-bedroom apartment...",
+                        "created_at": "2024-01-15T10:00:00Z",
+                        "price": "350000.00",
+                        "price_currency": "USD",
+                        "address": {
+                            "street": "123 Main St",
+                            "city": "Springfield",
+                            "zip_code": "98765",
+                        },
+                        "image": "/media/property_images/apt101_primary.jpg",
+                        "favorite": True,
+                    },
+                ],
+                response_only=True,
+                media_type="application/json",
+            ),
+        ],
+        responses={
+            HTTP_200_OK: PropertyListSerializer(many=True),
+            HTTP_401_UNAUTHORIZED: OpenApiResponse(
+                description="Authentication credentials were not provided, or are invalid.",
+                response=inline_serializer(
+                    name="Error401Serializer",
+                    fields={
+                        "detail": SerCharField(
+                            default="Authentication credentials were not provided."
+                        )
+                    },
+                ),
+            ),
+        },
+    )
     @action(
         detail=False,
         methods=["GET"],
@@ -246,26 +219,55 @@ class PropertyViewSet(BaseAPIViewSet[Property]):
     def user_favorite_properties(
         self, request: Request, *args: Any, **kwargs: Any
     ) -> Response:
-        """Get a list of favorite properties for the logged in user.
-
-        Args:
-            request (Request):
-
-        Returns:
-            Response: List of properties with following details:
-            - id
-            - type
-            - description
-            - created_at
-            - price
-            - price_currency
-            - address
-            - image
-            - favorite
-        """
+        """Get a list of favorite properties for the logged in user."""
         serializer = self.get_serializer(self.get_queryset(), many=True)
         return Response(serializer.data, status=HTTP_200_OK)
 
+    @extend_schema(
+        summary="Add Property to Favorites",
+        request=None,  # No Request Body: Explicitly set request to None
+        # parameters=[
+        #     OpenApiParameter(
+        #         name='pk',
+        #         type=OpenApiTypes.INT,
+        #         location=OpenApiParameter.PATH,
+        #         description='The ID of the property to add to favorites.',
+        #         required=True
+        #     )
+        # ],
+        responses={
+            HTTP_200_OK: PropertyListSerializer,
+            HTTP_401_UNAUTHORIZED: OpenApiResponse(
+                description="Authentication credentials were not provided, or are invalid.",
+                response=inline_serializer(
+                    name="Error401FavoriteSerializer",
+                    fields={
+                        "detail": SerCharField(
+                            default="Authentication credentials were not provided."
+                        )
+                    },
+                ),
+            ),
+            HTTP_404_NOT_FOUND: OpenApiResponse(
+                description="Property not found.",
+                response=inline_serializer(
+                    name="Error404FavoriteSerializer",
+                    fields={"detail": SerCharField(default="Not found.")},
+                ),
+            ),
+            HTTP_409_CONFLICT: OpenApiResponse(
+                description="Property is already in favorites.",
+                response=inline_serializer(
+                    name="ConflictErrorSerializer",
+                    fields={
+                        "detail": SerCharField(
+                            default="Property is already in favorites."
+                        )
+                    },
+                ),
+            ),
+        },
+    )
     @action(
         detail=True,
         methods=["post"],
@@ -278,15 +280,21 @@ class PropertyViewSet(BaseAPIViewSet[Property]):
     ) -> Response:
         """Add the given property to the user favorite list."""
         property_obj = get_object_or_404(Property, pk=pk)
-        UserFavoriteProperty.objects.get_or_create(
+        _, created = UserFavoriteProperty.objects.get_or_create(
             user=request.user, property=property_obj
         )
-        serializer = self.get_serializer(
-            property_list_queryset(
-                filter=[property_obj.id], user_id=request.user.id
-            ).first()
-        )
-        return Response(data=serializer.data, status=HTTP_200_OK)
+        if not created:
+            return Response(
+                {"detail": "Property is already in favorites."},
+                status=HTTP_409_CONFLICT,
+            )
+        else:
+            serializer = self.get_serializer(
+                property_list_queryset(
+                    filter=[property_obj.id], user_id=request.user.id
+                ).first()
+            )
+            return Response(data=serializer.data, status=HTTP_200_OK)
 
     @action(
         detail=True,

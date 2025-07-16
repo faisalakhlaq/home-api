@@ -21,6 +21,7 @@ THIRD_PARTY_APPS: List[str] = [
     "dj_rest_auth.registration",
     "django_filters",
     "corsheaders",
+    "drf_spectacular",
 ]
 BASE_PROJECT_APPS: List[str] = [
     "apps.users",
@@ -125,7 +126,7 @@ REST_FRAMEWORK = {
     # if COERCE_DECIMAL_TO_STRING then the decimals are serialized as strings.
     "COERCE_DECIMAL_TO_STRING": False,
     "NON_FIELD_ERRORS_KEY": "error",
-    "DEFAULT_SCHEMA_CLASS": "rest_framework.schemas.coreapi.AutoSchema",
+    "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
     "DEFAULT_AUTHENTICATION_CLASSES": [
         "rest_framework_simplejwt.authentication.JWTAuthentication",
     ],
@@ -148,3 +149,10 @@ SIMPLE_JWT = {
 
 ACCOUNT_EMAIL_REQUIRED = False
 ACCOUNT_EMAIL_VERIFICATION = "none"
+
+SPECTACULAR_SETTINGS = {
+    "TITLE": "Balkan Home API Documentation",
+    "DESCRIPTION": "API for Balkan home project.",
+    "VERSION": "1.0.0",
+    "SERVE_INCLUDE_SCHEMA": False,
+}
