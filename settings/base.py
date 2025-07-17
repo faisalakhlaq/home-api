@@ -44,11 +44,8 @@ INSTALLED_APPS = (
 
 SITE_ID = 1
 
-THIRD_PARTY_MIDDLEWARE = [
-    "corsheaders.middleware.CorsMiddleware",
-    "allauth.account.middleware.AccountMiddleware",
-]
 MIDDLEWARE = [
+    "corsheaders.middleware.CorsMiddleware",
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
@@ -56,7 +53,8 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
-] + THIRD_PARTY_MIDDLEWARE
+    "allauth.account.middleware.AccountMiddleware",
+]
 
 AUTHENTICATION_BACKENDS = [
     "django.contrib.auth.backends.ModelBackend",
