@@ -38,3 +38,17 @@ CORS_ORIGIN_ALLOW_ALL = True
 
 STATIC_URL = "/static/"
 STATIC_ROOT = BASE_DIR / "staticfiles"
+
+# Allauth settings (CRITICAL FOR EMAIL-BASED AUTH)
+# ACCOUNT_EMAIL_VERIFICATION = "mandatory"
+# ACCOUNT_EMAIL_VERIFICATION = "optional" # Let the users log in immediately
+
+# Email Backend settings (ESSENTIAL for email verification)
+# Configure a real email service (e.g., SendGrid, Mailgun, AWS SES)
+# EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+# EMAIL_HOST = 'smtp.yourdomain.com'
+# EMAIL_PORT = 587
+# EMAIL_USE_TLS = True
+# EMAIL_HOST_USER = 'your-email@yourdomain.com'
+# EMAIL_HOST_PASSWORD = 'your-email-password'
+# DEFAULT_FROM_EMAIL = 'noreply@yourdomain.com' # Or a specific sender email

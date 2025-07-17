@@ -38,7 +38,12 @@ class TestUserFavoritePropertiesAPI(TestCase):
 
         # Create a test user
         cls.user = UserModel.objects.create_user(
-            username="testuser", email="test@example.com", password="testpass123"
+            username="testuser",
+            email="test@example.com",
+            password="testpass123",
+            first_name="Test",
+            last_name="Test",
+            agreed_to_terms=True,
         )
 
     def setUp(self) -> None:
@@ -160,7 +165,12 @@ class TestUserFavoritePropertiesAPI(TestCase):
         Test that an authenticated user cannot retrieve another user's favorite.
         """
         other_user = UserModel.objects.create_user(
-            username="otheruser", email="other@example.com", password="otherpass123"
+            username="testuserAnother",
+            email="test123@example.com",
+            password="testpass123",
+            first_name="Test",
+            last_name="Test",
+            agreed_to_terms=True,
         )
         property_instance = self.create_property()
         other_favorite_instance = UserFavoriteProperty.objects.create(
@@ -215,9 +225,12 @@ class TestUserFavoritePropertiesAPI(TestCase):
         Test that an authenticated user cannot delete another user's favorite.
         """
         other_user = UserModel.objects.create_user(
-            username="anotheruser",
+            username="testuserAnother",
             email="another@example.com",
             password="anotherpass123",
+            first_name="Test",
+            last_name="Test",
+            agreed_to_terms=True,
         )
         property_instance = self.create_property()
         other_favorite_instance = UserFavoriteProperty.objects.create(

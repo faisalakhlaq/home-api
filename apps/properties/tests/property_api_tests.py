@@ -50,7 +50,12 @@ class TestPropertyAPI(TestCase):
 
         # Create a test user
         cls.user = User.objects.create_user(
-            username="testuser", email="test@example.com", password="testpass123"
+            username="testuser",
+            email="test@example.com",
+            password="testpass123",
+            first_name="Test",
+            last_name="Test",
+            agreed_to_terms=True,
         )
 
     def setUp(self) -> None:

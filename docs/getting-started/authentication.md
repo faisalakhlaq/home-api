@@ -27,9 +27,15 @@ The application uses JWT (JSON Web Token) authentication powered by:
 4. When access token expires, client refreshes it using `/token/refresh`
 
 ## User Model
+
+Using login is using `email`. `username` is still present (optional) but not the primary field for authentication.
 The custom user model extends Django's `AbstractUser` with additional fields:
 - `is_business_user`: Boolean indicating if user belongs to a business customer
 - `is_company_admin`: Boolean indicating admin privileges for business users
+- `agreed_to_terms`: Boolean required at registration
+- `full_name`: Automatically generated from first_name and last_name
+- `phone_number`: Optional field for user contact
+- `email`: Used as primary identifier for login (see below)
 
 ## API Endpoints
 
@@ -37,7 +43,12 @@ The custom user model extends Django's `AbstractUser` with additional fields:
 - **URL**: `/register`
 - **Method**: POST
 - **Description**: Creates a new user account
-- **Required Fields**: username, email, password1, password2
+- **Required Fields**:
+      - `email`: Must be unique
+      - `password1, password2`: Minimum 8 characters, cannot be too common or entirely numeric
+      - `first_name, last_name`: Required
+      - `agreed_to_terms`: Must be true
+
 - **Response**: Returns JWT tokens on successful registration
 
 ### Login
