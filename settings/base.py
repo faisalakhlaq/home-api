@@ -136,6 +136,7 @@ REST_FRAMEWORK = {
 REST_AUTH = {
     "USE_JWT": True,
     "JWT_AUTH_HTTPONLY": False,
+    "REGISTER_SERIALIZER": "apps.users.serializers.CustomRegisterSerializer",
 }
 
 SIMPLE_JWT = {
@@ -148,25 +149,33 @@ SIMPLE_JWT = {
     "ALGORITHM": "HS512",
 }
 
+# django-allauth settings for signup fields
+ACCOUNT_SIGNUP_FIELDS = {
+    "email": {"required": True, "label": "Email Address*", "widget": "email"},
+    "first_name": {
+        "required": True,
+        "label": "First Name*",
+    },
+    "last_name": {
+        "required": True,
+        "label": "Last Name*",
+    },
+}
+
+# Allauth settings (CRITICAL FOR EMAIL-BASED AUTH)
+# If custom User model *doesn't* have a `username` field, therefore:
+ACCOUNT_USER_MODEL_USERNAME_FIELD = None  # We removed username from CustomUser
 ACCOUNT_EMAIL_VERIFICATION = "none"
+ACCOUNT_UNIQUE_EMAIL = True
+ACCOUNT_LOGIN_METHODS = ["email"]  # Users log in using their email address
+
+# Email Backend settings (ESSENTIAL for email verification)
+# For development, use console backend to see emails in your terminal
+EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
 
 SPECTACULAR_SETTINGS = {
     "TITLE": "Balkan Home API Documentation",
     "DESCRIPTION": "API for Balkan home project.",
     "VERSION": "1.0.0",
     "SERVE_INCLUDE_SCHEMA": False,
-}
-
-# django-allauth settings for signup fields
-ACCOUNT_SIGNUP_FIELDS = {
-    "username": {"required": True, "label": "Username", "widget": "input"},
-    "email": {"required": False, "label": "Email Address", "widget": "email"},
-    "first_name": {
-        "required": False,
-        "label": "First Name",
-    },
-    "last_name": {
-        "required": False,
-        "label": "Last Name",
-    },
 }

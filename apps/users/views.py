@@ -2,7 +2,7 @@ from dj_rest_auth.views import UserDetailsView
 
 from rest_framework.permissions import IsAuthenticated
 
-from .serializer import AuthUserDetailsSerializer
+from .serializers import AuthUserDetailsSerializer
 
 
 class AuthUserDetailsView(UserDetailsView):
