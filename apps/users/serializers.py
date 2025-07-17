@@ -29,10 +29,19 @@ class AuthUserDetailsSerializer(ModelSerializer[User]):
             "full_name",
             "is_business_user",
             "is_company_admin",
+            "agreed_to_terms",
+            "phone_number",
+            "is_verified",
+            "subscription_status",
+            "profile_photo"
         )
         read_only_fields = (
             "email",
             "username",
+            "is_business_user",
+            "is_company_admin",
+            "is_verified",
+            "subscription_status",
         )
 
 
