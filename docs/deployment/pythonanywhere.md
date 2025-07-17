@@ -11,6 +11,7 @@ This document outlines the step-by-step process for deploying and updating your 
 5.  [Generate static files](#5-generate-static-files)
 6.  [Final Deployment Steps and Verification](#6-final-deployment-steps-and-verification)
 7.  [Troubleshooting](#7-troubleshooting)
+8. [Environment variables](#8-environment-variables)
 
 -----
 
@@ -275,3 +276,9 @@ If you encounter issues, here are some common troubleshooting steps:
       * Always remember to "Reload" your web app from the "Web" tab after making any code or configuration changes.
 
 -----
+
+## 8\. Environment variables
+
+The `.env` file contains the environment variables which are used by the application on pythonanywhere. The file is stored at `/home/faisalakhlaq/home-api/.env`.
+
+If the environment variables are updated, a reload of the application is required to use the updated / new env variables.
