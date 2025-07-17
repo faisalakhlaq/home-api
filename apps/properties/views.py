@@ -4,37 +4,22 @@ from django_filters import rest_framework as filters
 
 from django.db.models import QuerySet
 
-from drf_spectacular.utils import (
-    OpenApiExample,
-    OpenApiResponse,
-    extend_schema,
-    inline_serializer,
-)
-
 from rest_framework.decorators import action
-from rest_framework.generics import get_object_or_404
 from rest_framework.permissions import IsAuthenticated, IsAuthenticatedOrReadOnly
 from rest_framework.response import Response
 from rest_framework.request import Request
-from rest_framework.serializers import CharField as SerCharField, ModelSerializer
+from rest_framework.serializers import ModelSerializer
 from rest_framework.status import (
     HTTP_200_OK,
-    HTTP_204_NO_CONTENT,
-    HTTP_400_BAD_REQUEST,
-    HTTP_401_UNAUTHORIZED,
-    HTTP_404_NOT_FOUND,
     HTTP_405_METHOD_NOT_ALLOWED,
-    HTTP_409_CONFLICT,
 )
 
 from apps.core.models import City, Genre, Status
 from apps.core.serializers import IdNameListSerializer
 from apps.core.views import BaseAPIViewSet
-from apps.users.models import UserFavoriteProperty
 from apps.properties.models import Property
 from apps.properties.querysets import (
     property_list_queryset,
-    user_favorite_properties_qs,
 )
 from apps.properties.serializers import (
     PropertyDetailSerializer,
@@ -111,10 +96,6 @@ class PropertyViewSet(BaseAPIViewSet[Property]):
                 return property_list_queryset()
         elif self.action == "get_create_property_form_data":
             return Property.objects.none()
-        elif self.action == "user_favorite_properties":
-            return user_favorite_properties_qs(user_id=self.request.user.id)  # type: ignore
-        elif self.action == "add_to_favorites":
-            return Property.objects.none()
         else:
             return Property.objects.select_related("address").prefetch_related(
                 "property_images"
@@ -167,155 +148,3 @@ class PropertyViewSet(BaseAPIViewSet[Property]):
             ),
         }
         return Response(data=data, status=HTTP_200_OK)
-
-    @extend_schema(
-        summary="Get Favorite Properties",
-        description="Retrieves a list of properties marked as favorite by the currently authenticated user.",
-        examples=[
-            OpenApiExample(
-                "Favorite Properties List Example",
-                value=[
-                    {
-                        "id": 101,
-                        "type": "Apartment",
-                        "description": "Spacious 3-bedroom apartment...",
-                        "created_at": "2024-01-15T10:00:00Z",
-                        "price": "350000.00",
-                        "price_currency": "USD",
-                        "address": {
-                            "street": "123 Main St",
-                            "city": "Springfield",
-                            "zip_code": "98765",
-                        },
-                        "image": "/media/property_images/apt101_primary.jpg",
-                        "favorite": True,
-                    },
-                ],
-                response_only=True,
-                media_type="application/json",
-            ),
-        ],
-        responses={
-            HTTP_200_OK: PropertyListSerializer(many=True),
-            HTTP_401_UNAUTHORIZED: OpenApiResponse(
-                description="Authentication credentials were not provided, or are invalid.",
-                response=inline_serializer(
-                    name="Error401Serializer",
-                    fields={
-                        "detail": SerCharField(
-                            default="Authentication credentials were not provided."
-                        )
-                    },
-                ),
-            ),
-        },
-    )
-    @action(
-        detail=False,
-        methods=["GET"],
-        url_name="user-favorite-properties",
-        permission_classes=[IsAuthenticated],
-    )
-    def user_favorite_properties(
-        self, request: Request, *args: Any, **kwargs: Any
-    ) -> Response:
-        """Get a list of favorite properties for the logged in user."""
-        serializer = self.get_serializer(self.get_queryset(), many=True)
-        return Response(serializer.data, status=HTTP_200_OK)
-
-    @extend_schema(
-        summary="Add Property to Favorites",
-        request=None,  # No Request Body: Explicitly set request to None
-        # parameters=[
-        #     OpenApiParameter(
-        #         name='pk',
-        #         type=OpenApiTypes.INT,
-        #         location=OpenApiParameter.PATH,
-        #         description='The ID of the property to add to favorites.',
-        #         required=True
-        #     )
-        # ],
-        responses={
-            HTTP_200_OK: PropertyListSerializer,
-            HTTP_401_UNAUTHORIZED: OpenApiResponse(
-                description="Authentication credentials were not provided, or are invalid.",
-                response=inline_serializer(
-                    name="Error401FavoriteSerializer",
-                    fields={
-                        "detail": SerCharField(
-                            default="Authentication credentials were not provided."
-                        )
-                    },
-                ),
-            ),
-            HTTP_404_NOT_FOUND: OpenApiResponse(
-                description="Property not found.",
-                response=inline_serializer(
-                    name="Error404FavoriteSerializer",
-                    fields={"detail": SerCharField(default="Not found.")},
-                ),
-            ),
-            HTTP_409_CONFLICT: OpenApiResponse(
-                description="Property is already in favorites.",
-                response=inline_serializer(
-                    name="ConflictErrorSerializer",
-                    fields={
-                        "detail": SerCharField(
-                            default="Property is already in favorites."
-                        )
-                    },
-                ),
-            ),
-        },
-    )
-    @action(
-        detail=True,
-        methods=["post"],
-        url_name="add-to-favorites",
-        permission_classes=[IsAuthenticated],
-        name="Add to favorites",
-    )
-    def add_to_favorites(
-        self, request: Request, pk: int, *args: Any, **kwargs: Any
-    ) -> Response:
-        """Add the given property to the user favorite list."""
-        property_obj = get_object_or_404(Property, pk=pk)
-        _, created = UserFavoriteProperty.objects.get_or_create(
-            user=request.user, property=property_obj
-        )
-        if not created:
-            return Response(
-                {"detail": "Property is already in favorites."},
-                status=HTTP_409_CONFLICT,
-            )
-        else:
-            serializer = self.get_serializer(
-                property_list_queryset(
-                    filter=[property_obj.id], user_id=request.user.id
-                ).first()
-            )
-            return Response(data=serializer.data, status=HTTP_200_OK)
-
-    @action(
-        detail=True,
-        methods=["post"],
-        url_name="remove-from-favorites",
-        permission_classes=[IsAuthenticated],
-        name="Remove from favorites",
-    )
-    def remove_from_favorites(
-        self, request: Request, pk: int, *args: Any, **kwargs: Any
-    ) -> Response:
-        """Remove the given property from the user favorite list."""
-        property_obj = get_object_or_404(Property, pk=pk)
-        favorite_qs = UserFavoriteProperty.objects.filter(  # type: ignore
-            user=request.user, property=property_obj
-        )
-        if not favorite_qs.exists():
-            return Response(
-                data={"error": "The given property is not in user favorites."},
-                status=HTTP_400_BAD_REQUEST,
-            )
-
-        favorite_qs.delete()
-        return Response(status=HTTP_204_NO_CONTENT)

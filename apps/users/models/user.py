@@ -1,5 +1,7 @@
+from typing import Any
+
 from django.contrib.auth.models import AbstractUser
-from django.db.models import BooleanField
+from django.db.models import BooleanField, CharField
 
 
 class User(AbstractUser):
@@ -43,3 +45,13 @@ class User(AbstractUser):
         help_text="""Every company registerd as a business customer requires
         an admin. Only the company admin can add users to the company.""",
     )
+    full_name = CharField(max_length=255, blank=True)
+
+    @property
+    def name(self) -> str:
+        name = f"{self.first_name} {self.last_name}".strip()
+        return name or self.username
+
+    def save(self, *args: Any, **kwargs: Any) -> None:
+        self.full_name = f"{self.first_name} {self.last_name}".strip() or self.username
+        super().save(*args, **kwargs)
