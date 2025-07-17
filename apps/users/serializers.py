@@ -33,7 +33,7 @@ class AuthUserDetailsSerializer(ModelSerializer[User]):
             "phone_number",
             "is_verified",
             "subscription_status",
-            "profile_photo"
+            "profile_photo",
         )
         read_only_fields = (
             "email",
