@@ -1,10 +1,8 @@
 name: PR CI Pipeline
 
 on:
-  # Only triggers for PRs targeting development (not merges)
-  pull_request_target:
+  pull_request:
     branches: [development]
-    types: [opened, synchronize, reopened, ready_for_review]
 
   push:
     branches: [development]
@@ -48,6 +46,12 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+
+      - name: Debug Event
+        run: |
+          echo "Event: ${{ github.event_name }}"
+          echo "Ref: ${{ github.ref }}"
+          echo "Commit Message: ${{ github.event.head_commit.message }}"
 
       - name: Set up Python 3.10
         uses: actions/setup-python@v5
