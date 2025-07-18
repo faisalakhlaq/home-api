@@ -6,6 +6,9 @@ on:
 
   push:
     branches: [development]
+    paths-ignore:
+      - '**.md'  # Exclude docs-only changes
+    if: "!contains(github.event.head_commit.message, 'Merge pull request')"
 
   workflow_dispatch:
 
@@ -43,6 +46,12 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+
+      - name: Debug Event
+        run: |
+          echo "Event: ${{ github.event_name }}"
+          echo "Ref: ${{ github.ref }}"
+          echo "Commit Message: ${{ github.event.head_commit.message }}"
 
       - name: Set up Python 3.10
         uses: actions/setup-python@v5
