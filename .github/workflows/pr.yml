@@ -3,17 +3,23 @@ name: PR CI Pipeline
 on:
   pull_request:
     branches: [development]
+    types: [opened, synchronize, reopened, ready_for_review]
 
   push:
     branches: [development]
     paths-ignore:
       - '**.md'  # Exclude docs-only changes
-    if: "!github.event.forced"
+    if: "!contains(github.event.commits[0].message, 'Merge pull request')"
 
   workflow_dispatch:
 
 jobs:
   build_and_test:
+    if: |
+      github.event_name == 'pull_request' ||
+      (github.event_name == 'push' && 
+       !contains(github.event.commits[0].message, 'Merge pull request'))
+
     runs-on: ubuntu-latest
 
     env:
@@ -44,16 +50,17 @@ jobs:
           --health-retries=10
 
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Debug Merge Detection
+      - name: Debug Event
         run: |
           echo "EVENT TYPE: ${{ github.event_name }}"
           echo "REF: ${{ github.ref }}"
-          echo "COMMIT MESSAGE: ${{ toJson(github.event.commits[0].message) }}"
+          echo "IS PR EVENT: ${{ github.event.pull_request != '' }}"
+          echo "COMMIT MSG: ${{ toJson(github.event.commits[0].message) || 'N/A' }}"
           echo "IS FORCED PUSH: ${{ github.event.forced }}"
           echo "COMMIT COUNT: ${{ github.event.commits|length }}"
+
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
       - name: Set up Python 3.10
         uses: actions/setup-python@v5
