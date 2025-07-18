@@ -8,7 +8,7 @@ on:
     branches: [development]
     paths-ignore:
       - '**.md'  # Exclude docs-only changes
-    if: "!contains(github.event.head_commit.message, 'Merge pull request')"
+    if: "!github.event.forced"
 
   workflow_dispatch:
 
@@ -47,11 +47,13 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Debug Event
+      - name: Debug Merge Detection
         run: |
-          echo "Event: ${{ github.event_name }}"
-          echo "Ref: ${{ github.ref }}"
-          echo "Commit Message: ${{ github.event.head_commit.message }}"
+          echo "EVENT TYPE: ${{ github.event_name }}"
+          echo "REF: ${{ github.ref }}"
+          echo "COMMIT MESSAGE: ${{ toJson(github.event.commits[0].message) }}"
+          echo "IS FORCED PUSH: ${{ github.event.forced }}"
+          echo "COMMIT COUNT: ${{ github.event.commits|length }}"
 
       - name: Set up Python 3.10
         uses: actions/setup-python@v5
