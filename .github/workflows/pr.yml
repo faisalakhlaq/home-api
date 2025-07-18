@@ -1,11 +1,16 @@
 name: PR CI Pipeline
 
 on:
-  pull_request:
+  # Only triggers for PRs targeting development (not merges)
+  pull_request_target:
     branches: [development]
+    types: [opened, synchronize, reopened, ready_for_review]
 
   push:
     branches: [development]
+    paths-ignore:
+      - '**.md'  # Exclude docs-only changes
+    if: "!contains(github.event.head_commit.message, 'Merge pull request')"
 
   workflow_dispatch:
 
