@@ -5,21 +5,10 @@ on:
     branches: [development]
     types: [opened, synchronize, reopened, ready_for_review]
 
-  push:
-    branches: [development]
-    paths-ignore:
-      - '**.md'  # Exclude docs-only changes
-    if: "github.event.commits && !contains(github.event.commits[0].message, 'Merge pull request')"
-
   workflow_dispatch:
 
 jobs:
   build_and_test:
-    if: |
-      github.event_name == 'pull_request' ||
-      (github.event_name == 'push' && 
-       github.event.commits &&
-       !contains(github.event.commits[0].message, 'Merge pull request'))
 
     runs-on: ubuntu-latest
 
@@ -58,9 +47,6 @@ jobs:
         run: |
           echo "EVENT TYPE: ${{ github.event_name }}"
           echo "REF: ${{ github.ref }}"
-          echo "COMMIT COUNT: ${{ github.event.commits && github.event.commits.length || 0 }}"
-          echo "FIRST COMMIT MSG: ${{ github.event.commits && github.event.commits[0].message || 'N/A' }}"
-          echo "IS PR: ${{ github.event.pull_request != '' }}"
 
       - name: Set up Python 3.10
         uses: actions/setup-python@v5
