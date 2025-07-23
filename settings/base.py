@@ -26,6 +26,7 @@ THIRD_PARTY_APPS: List[str] = [
 BASE_PROJECT_APPS: List[str] = [
     "apps.users",
     "apps.core",
+    "apps.locations",
     "apps.properties",
     "apps.favorites",
 ]
