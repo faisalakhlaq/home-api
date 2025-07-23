@@ -54,7 +54,7 @@ class Address(models.Model):
     )
     city = models.ForeignKey(
         City,
-        on_delete=models.PROTECT,  # Prevents accidental deletion of a city if addresses are linked
+        on_delete=models.PROTECT,
         related_name="addresses",
         help_text=dedent(
             _(
