@@ -10,8 +10,50 @@ from .models import City, Location
 def generate_slug(
     instance: City | Location, source_field: str = "name", target_field: str = "slug"
 ) -> None:
-    if not getattr(instance, target_field):
-        setattr(instance, target_field, slugify(getattr(instance, source_field)))
+    if getattr(instance, target_field):
+        return
+
+    base_slug = slugify(getattr(instance, source_field))
+    model_class = instance.__class__
+
+    # For Cities: include country code and disambiguate duplicates
+    if isinstance(instance, City):
+        unique_slug = f"{base_slug}-{instance.country.code.lower()}"
+        counter = 1
+        while (
+            model_class.objects.filter(slug=unique_slug)
+            .exclude(pk=instance.pk)
+            .exists()
+        ):
+            unique_slug = f"{base_slug}-{instance.country.code.lower()}-{counter}"
+            counter += 1
+
+    # For Locations: include parent slug if available
+    elif isinstance(instance, Location) and instance.parent:
+        parent_slug = instance.parent.slug or slugify(instance.parent.name)
+        unique_slug = f"{base_slug}-{parent_slug}"
+        counter = 1
+        while (
+            model_class.objects.filter(slug=unique_slug)
+            .exclude(pk=instance.pk)
+            .exists()
+        ):
+            unique_slug = f"{base_slug}-{parent_slug}-{counter}"
+            counter += 1
+
+    # Fallback for root locations
+    else:
+        unique_slug = base_slug
+        counter = 1
+        while (
+            model_class.objects.filter(slug=unique_slug)
+            .exclude(pk=instance.pk)
+            .exists()
+        ):
+            unique_slug = f"{base_slug}-{counter}"
+            counter += 1
+
+    setattr(instance, target_field, unique_slug)
 
 
 @receiver(pre_save, sender=City)

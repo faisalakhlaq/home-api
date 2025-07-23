@@ -3,6 +3,7 @@ from .city_model_tests import TestCityModel
 from .city_translation_model_tests import TestCityTranslation
 from .location_model_tests import TestLocationModel
 from .address_model_tests import TestAddressModel
+from .signals_tests import TestGenerateSlug
 
 __all__ = [
     "TestCountryModel",
@@ -10,4 +11,5 @@ __all__ = [
     "TestCityTranslation",
     "TestLocationModel",
     "TestAddressModel",
+    "TestGenerateSlug",
 ]
