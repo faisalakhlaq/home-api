@@ -21,22 +21,10 @@ collectstatic: ## Generate Django static files
 
 seed: ## Seed the database
 	make seed_locations;
-	make seed_genre;
-	make seed_city;
-	make seed_status;
 	make seed_properties;
 
 seed_locations:
 	cat seed/locations.py | python manage.py shell;
-
-seed_genre:
-	cat seed/genre.py | python manage.py shell;
-
-seed_city:
-	cat seed/city.py | python manage.py shell;
-
-seed_status:
-	cat seed/status.py | python manage.py shell;
 
 seed_properties:
 	cat seed/properties.py | python manage.py shell;

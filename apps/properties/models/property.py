@@ -7,7 +7,8 @@ from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 
-from apps.core.models import Address, Genre, Status, TimeTracking
+from apps.core.models import TimeTracking
+from apps.locations.models import Address
 
 
 def validate_positive(value: int | float) -> None:
@@ -22,7 +23,7 @@ def current_year() -> int:
     return datetime.date.today().year
 
 
-def max_value_current_year(value: int) -> None:
+def validate_max_current_year(value: int) -> None:
     """
     Validator to ensure the provided year is not greater than the current year.
 
@@ -34,6 +35,50 @@ def max_value_current_year(value: int) -> None:
         current year.
     """
     return MaxValueValidator(current_year())(value)
+
+
+class PropertyType(models.TextChoices):
+    # For detail of each choice check the seed/genre.py
+    SINGLE_FAMILY = "SINGLE_FAMILY", _("Single-family detached home")
+    APARTMENT = "APARTMENT", _("Apartment")
+    CONDOMINIUM = "CONDOMINIUM", _("Condominium (Condo)")
+    TOWNHOUSE = "TOWNHOUSE", _("Townhouse")
+    DUPLEX = "DUPLEX", _("Duplex")
+    TRIPLEX = "TRIPLEX", _("Triplex")
+    COOP = "COOP", _("Co-operative housing (Co-op)")
+    FARMHOUSE = "FARMHOUSE", _("Farmhouse")
+    MANSION = "MANSION", _("Mansion")
+    LAND = "LAND", _("Land / Ground")
+    BOATHOUSE = "BOATHOUSE", _("Boathouse")
+    RECREATIONAL = "RECREATIONAL", _("Recreational residence")
+    COUNTRY_HOME = "COUNTRY_HOME", _("Country property")
+    COTTAGE = "COTTAGE", _("Cottage")
+    TINY_HOME = "TINY_HOME", _("Tiny home")
+    MOBILE_HOME = "MOBILE_HOME", _("Mobile home")
+    PENTHOUSE = "PENTHOUSE", _("Penthouse")
+    LOFT = "LOFT", _("Loft")
+    MULTI_UNIT = "MULTI_UNIT", _("Multi-family / Multi-unit property")
+    MIXED_USE = "MIXED_USE", _("Mixed-use property")
+    COMMERCIAL = "COMMERCIAL", _("Commercial space")
+    INDUSTRIAL = "INDUSTRIAL", _("Industrial property")
+    OFFICE = "OFFICE", _("Office space")
+    WAREHOUSE = "WAREHOUSE", _("Warehouse")
+
+
+class PropertyStatus(models.TextChoices):
+    # For detail of each choice check the seed/status.py
+    ACTIVE = "ACTIVE", _("Active")
+    COMING_SOON = "COMING_SOON", _("Coming soon")
+    UNDER_CONTRACT = "UNDER_CONTRACT", _("Under contract")
+    PENDING = "PENDING", _("Pending")
+    SOLD = "SOLD", _("Sold")
+    LEASED = "LEASED", _("Leased")
+    AUCTION = "AUCTION", _("Auction")
+    OFF_MARKET = "OFF_MARKET", _("Off market")
+    EXPIRED = "EXPIRED", _("Expired")
+    WITHDRAWN = "WITHDRAWN", _("Withdrawn")
+    CANCELED = "CANCELED", _("Canceled")
+    DRAFT = "DRAFT", _("Draft")
 
 
 class Property(TimeTracking):
@@ -71,7 +116,7 @@ class Property(TimeTracking):
         description (TextField, optional): A detailed internal description of
             the property.
         address (ForeignKey): Link to the associated Address model.
-        type (ForeignKey, optional): Link to the Genre (type) of the property.
+        property_type (ForeignKey, optional): Link to the Genre (type) of the property.
         status (ForeignKey, optional): Link to the current Status of the
             property (e.g., For Sale).
         owner (ForeignKey, optional): Link to the User who created or owns the
@@ -95,7 +140,7 @@ class Property(TimeTracking):
         validators=[validate_positive],
         help_text=_(
             dedent(
-                """The covered area of the property in square meters.
+                """The covered area of the property in square meters (m²).
             This refers to the total indoor living space, including all rooms,
             hallways, and any other enclosed spaces within the structure."""
             )
@@ -105,7 +150,7 @@ class Property(TimeTracking):
         validators=[validate_positive],
         help_text=_(
             dedent(
-                """The total ground area of the property. This encompasses
+                """The total ground area of the property (m²). This encompasses
             the entire land area upon which the property is built, including
             outdoor spaces such as yards, gardens, and driveways."""
             )
@@ -117,7 +162,7 @@ class Property(TimeTracking):
         null=True,
         help_text=_(
             "The officially measured and verified area of the property, "
-            "typically used for legal or appraisal purposes."
+            "typically used for legal or appraisal purposes (m²)."
         ),
     )
     total_rooms = models.FloatField(
@@ -138,7 +183,7 @@ class Property(TimeTracking):
         help_text=_("The total number of toilet facilities in the property."),
     )
     construction_year = models.IntegerField(
-        validators=[MinValueValidator(0), max_value_current_year],
+        validators=[MinValueValidator(0), validate_max_current_year],
         blank=True,
         null=True,
         help_text=_(
@@ -146,7 +191,7 @@ class Property(TimeTracking):
         ),
     )
     renovation_year = models.IntegerField(
-        validators=[MinValueValidator(0), max_value_current_year],
+        validators=[MinValueValidator(0), validate_max_current_year],
         blank=True,
         null=True,
         help_text=_(
@@ -198,33 +243,22 @@ class Property(TimeTracking):
             )
         ),
     )
-    address = models.ForeignKey(
-        Address,
-        on_delete=models.RESTRICT,
-        related_name="address_properties",
-        help_text=_("The physical address where the property is located."),
-    )
-    type = models.ForeignKey(
-        Genre,
-        on_delete=models.RESTRICT,
-        related_name="genre_properties",
+    property_type = models.CharField(
+        max_length=255,
+        choices=PropertyType.choices,
         help_text=_(
             "The classification or genre of the property (e.g., 'Residential', "
             "'Commercial', 'Apartment', 'House')."
         ),
-        blank=True,
-        null=True,
     )
-    status = models.ForeignKey(
-        Status,
-        on_delete=models.RESTRICT,
-        related_name="status_properties",
+    status = models.CharField(
+        max_length=255,
+        choices=PropertyStatus.choices,
+        default=PropertyStatus.ACTIVE,
         help_text=_(
             "The current transactional status of the property (e.g., 'For Sale', "
             "'Under Contract', 'Sold', 'Rented')."
         ),
-        blank=True,
-        null=True,
     )
     owner = models.ForeignKey(
         get_user_model(),
@@ -236,19 +270,99 @@ class Property(TimeTracking):
             "of this property listing."
         ),
     )
+    available_from = models.DateField(
+        null=True,
+        blank=True,
+        help_text=_("When can the buy move in."),
+    )
+    energy_class = models.CharField(
+        null=True,
+        blank=True,
+        help_text=_(
+            "What is the energy class of the property. (e.g. A, B, C, D, E, F, G)"
+        ),
+    )
+    # Address related fields
+    address = models.ForeignKey(
+        Address,
+        blank=True,
+        null=True,
+        on_delete=models.RESTRICT,
+        related_name="address_properties",
+        help_text=_("The physical address where the property is located."),
+    )
+    street_name = models.CharField(
+        max_length=255,
+        help_text=_(
+            dedent(
+                """The name of the street where the property is located.
+                For example: 'Åfløjen'."""
+            )
+        ),
+    )
+    street_number = models.CharField(
+        max_length=20,
+        blank=True,
+        null=True,
+        help_text=_(
+            dedent(
+                """The house or building number on the street.
+                Supports formats like '40', '12A', or '13-15'."""
+            )
+        ),
+    )
+    postal_code = models.CharField(
+        max_length=20,
+        help_text=_("The postal code for the property's location, e.g., '8000'."),
+    )
+    city = models.CharField(
+        max_length=255,
+        help_text=_("The city or town native name where the property is located."),
+    )
+    region = models.CharField(
+        max_length=255,
+        blank=True,
+        null=True,
+        help_text=_(
+            dedent(
+                """The administrative region or municipality of the property.
+                This can be useful for broader geographical filtering."""
+            )
+        ),
+    )
+    country_code = models.CharField(
+        max_length=2,
+        help_text=_(
+            dedent(
+                """The ISO 3166-1 Alpha-2 country code (e.g., 'DK' for
+                Denmark). Used for filtering and international support."""
+            )
+        ),
+    )
 
     class Meta:
         verbose_name = _("Property")
         verbose_name_plural = _("Properties")
+        indexes = [
+            # Compound indexes for common filters
+            models.Index(fields=["country_code", "status", "city"]),
+            models.Index(fields=["country_code", "status", "property_type"]),
+            models.Index(fields=["country_code", "status", "street_name"]),
+            models.Index(fields=["country_code", "status", "price"]),
+            models.Index(fields=["country_code", "status", "area"]),
+            models.Index(fields=["country_code", "status", "postal_code"]),
+            models.Index(fields=["country_code", "status", "total_rooms"]),
+            # Support sorting if needed
+            models.Index(fields=["country_code", "status", "created_at"]),
+            models.Index(fields=["country_code", "status", "construction_year"]),
+        ]
 
     def __str__(self) -> str:
-        """Returns a string representation of the property."""
         return _(
-            "Property (Rooms: {total_rooms}, Price: {price} {currency}, "
-            "Area: {area} sqm)"
+            "Property (Rooms: {total_rooms}, Price: {price} {currency}, Area: {area} sqm)"
         ).format(
-            total_rooms=self.total_rooms,
-            price=self.price,
-            currency=self.price_currency,
-            area=self.area,
+            total_rooms=self.total_rooms or "N/A",
+            price=self.price or "N/A",
+            currency=self.price_currency or "",
+            area=self.area or "N/A",
         )

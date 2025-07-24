@@ -1,13 +1,11 @@
 from django.contrib.auth import get_user_model
-from django.contrib.contenttypes.models import ContentType
 from django.test import TestCase
 from django.urls import reverse
 
 from rest_framework.test import APIClient, APIRequestFactory
 
 from apps.favorites.models import UserFavoriteProperty
-from apps.core.models import Address
-from apps.properties.models import Property
+from apps.properties.models.property import Property, PropertyStatus, PropertyType
 
 UserModel = get_user_model()
 
@@ -26,15 +24,14 @@ class TestUserFavoritePropertiesAPI(TestCase):
             "total_area": 130.0,
             "total_rooms": 4.0,
             "description": "Комфорен стан на адреса Маршал Тито во Кичево",
-        }
-        cls.address_payload = {
-            "street": "Maršal Tito",
+            "street_name": "Maršal Tito",
             "city": "Kičevo",
             "region": "R12",
             "postal_code": "6250",
-            "country": "North Mecedonia",
+            "country_code": "MK",
+            "status": PropertyStatus.ACTIVE,
+            "property_type": PropertyType.APARTMENT,
         }
-        cls.property_content_type = ContentType.objects.get_for_model(model=Property)
 
         # Create a test user
         cls.user = UserModel.objects.create_user(
@@ -54,9 +51,7 @@ class TestUserFavoritePropertiesAPI(TestCase):
         self.factory = APIRequestFactory()
 
     def create_property(self, **params):
-        address = dict(self.address_payload)
         payload = dict(self.property_payload)
-        payload["address"] = Address.objects.create(**address)
         payload.update(params)
         return Property.objects.create(**payload)
 

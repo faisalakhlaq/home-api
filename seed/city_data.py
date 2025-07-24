@@ -21,6 +21,13 @@ macedonia_cities = [
         "longitude": 22.575556,
     },
     {
+        "name": "Češinovo-Obleševo",
+        "slug": None,
+        "region": "Источен регион",  # Eastern Region
+        "latitude": 41.87,
+        "longitude": 22.28,
+    },
+    {
         "name": "Debar",
         "slug": None,
         "region": "Југозападен регион",  # Southwestern Region
@@ -47,6 +54,13 @@ macedonia_cities = [
         "region": "Вардарски регион",  # Vardar Region
         "latitude": 41.4113,
         "longitude": 22.2422,
+    },
+    {
+        "name": "Dojran",
+        "slug": None,
+        "region": "Југоисточен регион",  # Southeastern Region
+        "latitude": 41.18,
+        "longitude": 22.73,
     },
     {
         "name": "Gevgelija",
@@ -320,13 +334,6 @@ macedonia_cities = [
         "region": "Вардарски регион",
         "latitude": 41.65,
         "longitude": 21.66,
-    },
-    {
-        "name": "Češinovo-Obleševo",
-        "slug": None,
-        "region": "Источен регион",
-        "latitude": 41.87,
-        "longitude": 22.28,
     },
     {
         "name": "Debarca",
