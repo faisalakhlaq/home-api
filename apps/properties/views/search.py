@@ -158,7 +158,10 @@ class PropertySearchAPI(APIView):
     )
     def get(self, request: Request) -> Response:
         query = request.query_params.get("text", "").strip()
-        country_code = request.query_params.get("country_code", "DK").upper()
+        country_code = request.query_params.get("country_code", "DK")
+        if country_code:
+            country_code = country_code.upper()
+
         property_types = (
             request.query_params.get("property_types", "").split(",")
             if "property_types" in request.query_params
