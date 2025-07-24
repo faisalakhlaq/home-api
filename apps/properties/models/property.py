@@ -276,6 +276,7 @@ class Property(TimeTracking):
         help_text=_("When can the buy move in."),
     )
     energy_class = models.CharField(
+        max_length=255,
         null=True,
         blank=True,
         help_text=_(
