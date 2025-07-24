@@ -23,8 +23,14 @@ class PropertyAdmin(admin.ModelAdmin):
         "roof_type",
         "description",
         "address",
-        "type",
+        "property_type",
         "status",
+        "street_name",
+        "street_number",
+        "postal_code",
+        "city",
+        "region",
+        "country_code",
         "created_at",
         "updated_at",
     ]
@@ -43,11 +49,10 @@ class PropertyAdmin(admin.ModelAdmin):
         "outer_walls",
         "roof_type",
         "description",
-        "address",
-        "type",
+        "property_type",
         "status",
     ]
-    list_filter = ["type", "status"]
+    list_filter = ["property_type", "status"]
     search_fields = [
         "id",
         "price",
@@ -64,8 +69,7 @@ class PropertyAdmin(admin.ModelAdmin):
         "outer_walls",
         "roof_type",
         "description",
-        "address",
-        "type",
+        "property_type",
         "status",
         "created_at",
         "updated_at",

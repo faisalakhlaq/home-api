@@ -1,9 +1,0 @@
-from django.db import models
-
-
-class City(models.Model):
-    name = models.CharField(max_length=255)
-    country = models.CharField(max_length=255)
-
-    def __str__(self) -> str:
-        return f"{self.name}, {self.country}"

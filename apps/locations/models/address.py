@@ -3,10 +3,12 @@ from textwrap import dedent
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 
+from apps.core.models import TimeTracking
+
 from .city import City
 
 
-class Address(models.Model):
+class Address(TimeTracking):
     """
     Represents a specific physical address for a property. This model
     stores granular address components (street, number, postal code)

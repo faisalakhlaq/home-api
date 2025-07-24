@@ -11,9 +11,8 @@ class Location(models.Model):
     """
     Represents a geographical location unit within a faceted hierarchy,
     such as regions, municipalities, city areas, or streets. This model
-    is designed to support hierarchical browsing, filtering, and
-    organization of properties within specific geographical contexts,
-    similar to how Boligsiden structures its location filters.
+    is designed to support hierarchical browsing, filtering and
+    organization of properties within specific geographical contexts.
     """
 
     LOCATION_TYPE_CHOICES = [

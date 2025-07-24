@@ -2,24 +2,18 @@ from typing import Any, Dict
 
 from django.db import transaction
 
-from rest_framework.serializers import BooleanField, CharField, ModelSerializer
+from rest_framework.serializers import BooleanField, ModelSerializer
 
 from apps.properties.models import Property, PropertyImage
-from apps.core.serializers.address import (
-    AddressSerializer,
-    PropertyListAddressSerializer,
-)
 
 from .property_image import (
-    PropertyImageDetailSerializer,
     PropertyImageSerializer,
     PropertyPrimaryImageSerialzier,
 )
 
 
 class PropertySerializer(ModelSerializer[Property]):
-    address = AddressSerializer()
-    property_images = PropertyImageDetailSerializer(many=True, required=False)
+    property_images = PropertyImageSerializer(many=True, required=False)
 
     class Meta:
         model = Property
@@ -27,13 +21,7 @@ class PropertySerializer(ModelSerializer[Property]):
 
     @transaction.atomic()
     def create(self, validated_data: Dict[str, Any]) -> Property:
-        address_data = validated_data.pop("address")
         property_images_data = validated_data.pop("property_images", [])
-
-        address_ser = AddressSerializer(data=address_data)
-        if address_ser.is_valid(raise_exception=True):
-            address_instance = address_ser.save()
-            validated_data["address"] = address_instance
 
         validated_data["owner"] = (
             self.context.get("request").user  # type: ignore
@@ -60,19 +48,7 @@ class PropertySerializer(ModelSerializer[Property]):
         return property_instance
 
 
-class PropertyDetailSerializer(ModelSerializer[Property]):
-    type = CharField(source="type.name", default="", read_only=True)
-    address = AddressSerializer()
-    property_images = PropertyImageSerializer(many=True, required=False)
-
-    class Meta:
-        model = Property
-        fields = "__all__"
-
-
 class PropertyListSerializer(ModelSerializer[Property]):
-    type = CharField(source="type.name", default="", read_only=True)
-    address = PropertyListAddressSerializer(read_only=True)
     image = PropertyPrimaryImageSerialzier(read_only=True)
     favorite = BooleanField(source="is_favorite", default=False, read_only=True)
 
@@ -80,12 +56,18 @@ class PropertyListSerializer(ModelSerializer[Property]):
         model = Property
         fields = [
             "id",
-            "type",
+            "property_type",
             "description",
             "created_at",
             "price",
             "price_currency",
-            "address",
+            "total_rooms",
+            "area",
+            "energy_class",
+            "street_name",
+            "street_number",
+            "postal_code",
+            "city",
             "image",
             "favorite",
         ]

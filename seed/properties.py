@@ -1,7 +1,6 @@
 from typing import Any, Dict
 import logging
 
-from apps.core.models import Address
 from apps.properties.models import Property
 
 import random
@@ -10,243 +9,230 @@ logger = logging.getLogger(__name__)
 
 
 # Generate test data for addresses
-addresses_data = [
+address_data = [
     {
-        "country": "North Macedonia",
+        "country_code": "MK",
         "city": "Skopje",
-        "street": "Vasil Glavinov 9",
+        "street_name": "Vasil Glavinov 9",
         "postal_code": "1000",
     },
     {
-        "country": "North Macedonia",
+        "country_code": "MK",
         "city": "Bitola",
-        "street": "Dame Gruev 25",
+        "street_name": "Dame Gruev 25",
         "postal_code": "7000",
     },
     {
-        "country": "North Macedonia",
+        "country_code": "MK",
         "city": "Kumanovo",
-        "street": "Goce Delchev 14",
+        "street_name": "Goce Delchev 14",
         "postal_code": "1300",
     },
     {
-        "country": "North Macedonia",
+        "country_code": "MK",
         "city": "Prilep",
-        "street": "Makedonska Brigada 7",
+        "street_name": "Makedonska Brigada 7",
         "postal_code": "7500",
     },
     {
-        "country": "North Macedonia",
+        "country_code": "MK",
         "city": "Tetovo",
-        "street": "Kuzman Josifovski Pitu 33",
+        "street_name": "Kuzman Josifovski Pitu 33",
         "postal_code": "1200",
     },
     {
-        "country": "North Macedonia",
+        "country_code": "MK",
         "city": "Ohrid",
-        "street": "Kliment Ohridski 2",
+        "street_name": "Kliment Ohridski 2",
         "postal_code": "6000",
     },
     {
-        "country": "North Macedonia",
+        "country_code": "MK",
         "city": "Veles",
-        "street": "Orce Nikolov 11",
+        "street_name": "Orce Nikolov 11",
         "postal_code": "1400",
     },
     {
-        "country": "North Macedonia",
+        "country_code": "MK",
         "city": "Štip",
-        "street": "Dimitar Vlahov 18",
+        "street_name": "Dimitar Vlahov 18",
         "postal_code": "2000",
     },
     {
-        "country": "North Macedonia",
+        "country_code": "MK",
         "city": "Gostivar",
-        "street": "11 Oktomvri 5",
+        "street_name": "11 Oktomvri 5",
         "postal_code": "1230",
     },
     {
-        "country": "North Macedonia",
+        "country_code": "MK",
         "city": "Strumica",
-        "street": "Partizanska bb",
+        "street_name": "Partizanska bb",
         "postal_code": "2400",
     },
     {
-        "country": "North Macedonia",
+        "country_code": "MK",
         "city": "Kočani",
-        "street": "Rajko Zinzifov",
+        "street_name": "Rajko Zinzifov",
         "postal_code": "2300",
     },
     {
-        "country": "North Macedonia",
+        "country_code": "MK",
         "city": "Kičevo",
-        "street": "Maršal Tito",
+        "street_name": "Maršal Tito",
         "postal_code": "6250",
     },
     {
-        "country": "North Macedonia",
+        "country_code": "MK",
         "city": "Kratovo",
-        "street": "Goce Delchev",
+        "street_name": "Goce Delchev",
         "postal_code": "1360",
     },
     {
-        "country": "North Macedonia",
+        "country_code": "MK",
         "city": "Delčevo",
-        "street": "Ilindenska",
+        "street_name": "Ilindenska",
         "postal_code": "2320",
     },
     {
-        "country": "North Macedonia",
+        "country_code": "MK",
         "city": "Struga",
-        "street": "Kej Boris Kidrič",
+        "street_name": "Kej Boris Kidrič",
         "postal_code": "6330",
     },
     {
-        "country": "North Macedonia",
+        "country_code": "MK",
         "city": "Radoviš",
-        "street": "Rajko Zinzifov",
+        "street_name": "Rajko Zinzifov",
         "postal_code": "2420",
     },
     {
-        "country": "North Macedonia",
+        "country_code": "MK",
         "city": "Kavadarci",
-        "street": "Goce Delchev",
+        "street_name": "Goce Delchev",
         "postal_code": "1430",
     },
     {
-        "country": "North Macedonia",
+        "country_code": "MK",
         "city": "Gevgelija",
-        "street": "Goce Delchev",
+        "street_name": "Goce Delchev",
         "postal_code": "1480",
     },
     {
-        "country": "North Macedonia",
+        "country_code": "MK",
         "city": "Negotino",
-        "street": "Goce Delchev",
+        "street_name": "Goce Delchev",
         "postal_code": "1440",
     },
     {
-        "country": "North Macedonia",
+        "country_code": "MK",
         "city": "Kriva alanka",
-        "street": "Jane Sandanski",
+        "street_name": "Jane Sandanski",
         "postal_code": "1330",
     },
     {
-        "country": "North Macedonia",
+        "country_code": "MK",
         "city": "Debar",
-        "street": "Marshal Tito",
+        "street_name": "Marshal Tito",
         "postal_code": "1250",
     },
     {
-        "country": "North Macedonia",
+        "country_code": "MK",
         "city": "Vinica",
-        "street": "Goce Delchev",
+        "street_name": "Goce Delchev",
         "postal_code": "2310",
     },
     {
-        "country": "North Macedonia",
+        "country_code": "MK",
         "city": "Resen",
-        "street": "Marshal Tito",
+        "street_name": "Marshal Tito",
         "postal_code": "7310",
     },
     {
-        "country": "North Macedonia",
+        "country_code": "MK",
         "city": "Berovo",
-        "street": "Marsal Tito",
+        "street_name": "Marsal Tito",
         "postal_code": "2330",
     },
     {
-        "country": "North Macedonia",
+        "country_code": "MK",
         "city": "Sveti ikole",
-        "street": "Goce Delcev",
+        "street_name": "Goce Delcev",
         "postal_code": "2220",
     },
     {
-        "country": "North Macedonia",
+        "country_code": "MK",
         "city": "Probistip",
-        "street": "Boris Kidrič",
+        "street_name": "Boris Kidrič",
         "postal_code": "2220",
     },
     {
-        "country": "North Macedonia",
+        "country_code": "MK",
         "city": "Kicevo",
-        "street": "Marsal Tito",
+        "street_name": "Marsal Tito",
         "postal_code": "6250",
     },
     {
-        "country": "North Macedonia",
+        "country_code": "MK",
         "city": "Demir apija",
-        "street": "Goce Delčev",
+        "street_name": "Goce Delčev",
         "postal_code": "1441",
     },
     {
-        "country": "North Macedonia",
+        "country_code": "MK",
         "city": "Makedonski rod",
-        "street": "Krste Misirkov",
+        "street_name": "Krste Misirkov",
         "postal_code": "6530",
     },
     {
-        "country": "North Macedonia",
+        "country_code": "MK",
         "city": "Bogdanci",
-        "street": "Marsal Tito",
+        "street_name": "Marsal Tito",
         "postal_code": "1480",
     },
     {
-        "country": "North Macedonia",
+        "country_code": "MK",
         "city": "Valandovo",
-        "street": "Goce Delčev",
+        "street_name": "Goce Delčev",
         "postal_code": "1470",
     },
     {
-        "country": "North Macedonia",
+        "country_code": "MK",
         "city": "Dojran",
-        "street": "Boris Kidrič",
+        "street_name": "Boris Kidrič",
         "postal_code": "1487",
     },
     {
-        "country": "North Macedonia",
+        "country_code": "MK",
         "city": "Krushevo",
-        "street": "Marshal Tito",
+        "street_name": "Marshal Tito",
         "postal_code": "7550",
     },
     {
-        "country": "North Macedonia",
+        "country_code": "MK",
         "city": "Demir isar",
-        "street": "11 Oktomvri",
+        "street_name": "11 Oktomvri",
         "postal_code": "7315",
     },
     {
-        "country": "North Macedonia",
+        "country_code": "MK",
         "city": "Bogovinje",
-        "street": "Goce Delčev",
+        "street_name": "Goce Delčev",
         "postal_code": "1221",
     },
     {
-        "country": "North Macedonia",
+        "country_code": "MK",
         "city": "Češinovo-bleševo",
-        "street": "Jane Sandanski",
+        "street_name": "Jane Sandanski",
         "postal_code": "2340",
     },
     {
-        "country": "North Macedonia",
+        "country_code": "MK",
         "city": "Čaška",
-        "street": "Goce Delčev",
+        "street_name": "Goce Delčev",
         "postal_code": "1332",
     },
 ]
-
-
-# Create Address objects
-def create_address(address_data: Dict[str, Any]) -> Address | None:
-    try:
-        return Address.objects.create(**address_data)
-    except Exception as ex:
-        logger.exception(msg=str(ex))
-        return None
-
-
-addresses = list(map(create_address, addresses_data))
-# logger.info(f"Created Addresses = {addresses}")
 
 # Generate test data for properties
 test_data = [
@@ -280,12 +266,12 @@ test_data = [
         "roof_type": random.choice(
             ["Flat", "Pitched", "Gable", "Hip"]
         ),  # Random roof type
-        "address": addresses[
-            i
-        ],  # Associate the property with the corresponding address
     }
     for i in range(0, 37)  # Generate 40 records
 ]
+
+for address, property in zip(address_data, test_data):
+    property.update(**address)
 
 
 # Create Property objects

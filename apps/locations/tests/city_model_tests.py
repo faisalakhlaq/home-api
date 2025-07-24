@@ -15,7 +15,7 @@ class TestCityModel(TestCase):
         self.assertEqual(self.city.name, "Copenhagen")
         self.assertEqual(self.city.country.code, "DK")
         self.assertEqual(str(self.city), "Copenhagen, Denmark")
-        self.assertEqual(str(self.city.slug), "copenhagen")
+        self.assertEqual(str(self.city.slug), "copenhagen-dk")
 
     def test_unique_together(self):
         with self.assertRaises(IntegrityError):
