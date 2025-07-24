@@ -28,7 +28,7 @@ class PropertySearch:
 
         # Text search conditions
         text_filter = (
-            Q(city_name__icontains=query)
+            Q(city__icontains=query)
             | Q(street_name__icontains=query)
             | Q(postal_code__icontains=query)
         )
