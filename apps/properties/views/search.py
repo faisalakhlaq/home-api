@@ -50,8 +50,10 @@ class PropertySearchAPI(APIView):
                 required=True,
                 type=str,
                 examples=[
-                    OpenApiExample("Example 1", value="køben"),
-                    OpenApiExample("Example 2", value="2200"),
+                    OpenApiExample("Example 1 (City)", value="Bitola"),
+                    OpenApiExample("Example 2 (City)", value="køben"),
+                    OpenApiExample("Example 3 (Postal Code)", value="7000"),
+                    OpenApiExample("Example 3 (Street)", value="Dame Gruev"),
                 ],
             ),
             OpenApiParameter(
@@ -59,8 +61,9 @@ class PropertySearchAPI(APIView):
                 description="ISO 3166-1 country code",
                 required=False,
                 type=str,
-                default="DK",
+                default="MK",
                 examples=[
+                    OpenApiExample("North Mecedonia", value="MK"),
                     OpenApiExample("Denmark", value="DK"),
                     OpenApiExample("Norway", value="NO"),
                 ],
@@ -70,7 +73,11 @@ class PropertySearchAPI(APIView):
                 description="Comma-separated list of property types to filter",
                 required=False,
                 type=str,
-                examples=[OpenApiExample("Villas and condos", value="villa,condo")],
+                examples=[
+                    OpenApiExample(
+                        "Apartment and Villas and condos", value="apartment,villa,condo"
+                    )
+                ],
             ),
         ],
         responses={
