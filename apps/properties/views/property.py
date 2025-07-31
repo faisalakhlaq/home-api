@@ -15,8 +15,9 @@ from rest_framework.status import (
     HTTP_405_METHOD_NOT_ALLOWED,
 )
 
-from drf_spectacular.utils import extend_schema
+from drf_spectacular.utils import OpenApiExample, OpenApiParameter, extend_schema
 
+from apps.core.utils import CharInFilter, CustomFilterSet
 from apps.core.views import BaseAPIViewSet
 from apps.locations.models import City
 from apps.properties.models import Property, PropertyStatus, PropertyType
@@ -29,15 +30,7 @@ from apps.properties.serializers import (
 )
 
 
-class NumberInFilter(filters.BaseInFilter, filters.NumberFilter):  # type: ignore
-    pass
-
-
-class CharInFilter(filters.BaseInFilter, filters.CharFilter):  # type: ignore
-    pass
-
-
-class PropertyFilter(filters.FilterSet):  # type: ignore
+class PropertyFilter(CustomFilterSet):
     """Filtering for `Property` objects.
 
     #### Available query parameters
@@ -173,6 +166,20 @@ class PropertyViewSet(BaseAPIViewSet[Property]):
     Example:
     `/api/v1/properties/properties/?country_code=DK&min_price=100000`
     """,
+        parameters=[
+            OpenApiParameter(
+                name="country_code",
+                description="ISO 3166-1 country code",
+                required=True,
+                type=str,
+                default="MK",
+                examples=[
+                    OpenApiExample("North Mecedonia", value="MK"),
+                    OpenApiExample("Denmark", value="DK"),
+                ],
+            ),
+            *PropertyFilter.spectacular_parameters(exclude_fields=["country_code"]),
+        ],
     )
     def list(self, request: Request, *args: Any, **kwargs: Any) -> Response:
         return super().list(request, *args, **kwargs)
