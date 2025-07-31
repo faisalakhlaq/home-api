@@ -34,9 +34,9 @@ class CustomFilterSet(django_filters.FilterSet):  # type: ignore
     Example:
     ```python
     # filters.py
-    from core.utils.spectacular import OpenApiFilterSet
+    from core.utils.spectacular import CustomFilterSet
 
-    class PropertyFilter(OpenApiFilterSet):
+    class PropertyFilter(CustomFilterSet):
         city = django_filters.CharFilter(field_name="city", lookup_expr="iexact")
         min_price = django_filters.NumberFilter(field_name="price", lookup_expr="gte")
         max_price = django_filters.NumberFilter(field_name="price", lookup_expr="lte")
