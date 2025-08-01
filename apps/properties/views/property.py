@@ -109,6 +109,11 @@ class PropertyViewSet(BaseAPIViewSet[Property]):
         `property_list_queryset` with filters for `country_code`, `status`, and optionally
         user favorites if authenticated.
 
+        For count action we return the same queryset as list to make sure that
+        the list and count use the same filtering and once the user fetches
+        the, they will get the same number of results sa displayed by the
+        count.
+
         For non-list actions, it returns:
         - An empty queryset for `get_create_property_form_data`
         - A prefetch-optimized queryset for other actions (e.g., retrieve, update)
@@ -116,7 +121,7 @@ class PropertyViewSet(BaseAPIViewSet[Property]):
         This ensures consistent filtering across API views and supports performance
         optimizations for listing large datasets.
         """
-        if self.action == "list":
+        if self.action in ["list", "count"]:
             country_code = self.request.GET.get("country_code")
             if not country_code:
                 raise ValidationError(
@@ -204,3 +209,21 @@ class PropertyViewSet(BaseAPIViewSet[Property]):
             ),
         }
         return Response(data=data, status=HTTP_200_OK)
+
+    @action(
+        detail=False,
+        methods=["GET"],
+        url_name="count",
+    )
+    def count(self, request: Request, *args: Any, **kwargs: Any) -> Response:
+        """
+        Returns the number of properties that match the applied filters.
+
+        This endpoint applies the same filtering logic as the list view. By default,
+        it returns the count of active properties. If a 'status' query parameter
+        is provided, the count will reflect the number of properties in the specified
+        status(es).
+        """
+        filtered_queryset = self.filter_queryset(self.get_queryset())
+        count = filtered_queryset.count()
+        return Response(data={"count": count}, status=HTTP_200_OK)

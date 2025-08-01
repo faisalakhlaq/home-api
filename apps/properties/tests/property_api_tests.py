@@ -28,6 +28,7 @@ class TestPropertyAPI(TestCase):
         cls.property_form_url: str = reverse(
             "apps.properties:properties-get-create-property-form-data"
         )
+        cls.property_count_url: str = reverse("apps.properties:properties-count")
 
         cls.property_payload = {
             "price": "50000",
@@ -347,6 +348,29 @@ class TestPropertyAPI(TestCase):
         self.assertEqual(data[0]["id"], p_ids[0])
         self.assertEqual(data[1]["id"], p_ids[1])
         self.assertEqual(data[2]["id"], p_ids[2])
+
+    def test_count_properties(self) -> None:
+        sold_properties_count = 0
+        active_properties_count = 0
+
+        for i in range(10):
+            status = PropertyStatus.ACTIVE
+            if i % 3 == 0:
+                status = PropertyStatus.SOLD
+                sold_properties_count += 1
+            else:
+                active_properties_count += 1
+            self.create_property(status=status)
+
+        res = self.client.get(f"{self.property_count_url}?country_code=MK")
+        self.assertEqual(res.status_code, 200)
+        self.assertEqual(res.data["count"], active_properties_count)
+
+        res = self.client.get(
+            f"{self.property_count_url}?country_code=MK&status={PropertyStatus.SOLD}"
+        )
+        self.assertEqual(res.status_code, 200)
+        self.assertEqual(res.data["count"], sold_properties_count)
 
     def tearDown(self) -> None:
         return super().tearDown()
