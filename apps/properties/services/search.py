@@ -22,32 +22,35 @@ class PropertySearch:
 
         base_qs = base_qs.filter(status__in=status)
 
-        # Apply property type filters if provided
         if property_types:
             base_qs = base_qs.filter(property_type__in=property_types)
 
-        # Text search conditions
-        text_filter = (
-            Q(city__icontains=query)
-            | Q(street_name__icontains=query)
-            | Q(postal_code__icontains=query)
+        # Get cities that contain the query in their city name
+        cities_qs = base_qs.filter(city__icontains=query)
+        cities = cities_qs.values("city").annotate(count=Count("id")).order_by("-count")
+
+        # Get streets that contain the query in their street name
+        streets_qs = base_qs.filter(street_name__icontains=query)
+        streets = (
+            streets_qs.values("street_name", "postal_code", "city")
+            .annotate(count=Count("id"))
+            .order_by("-count")
         )
 
-        filtered = base_qs.filter(text_filter)
+        # Get addresses that contain the query in either street name or postal code
+        address_qs = base_qs.filter(
+            Q(street_name__icontains=query) | Q(postal_code__icontains=query)
+        )
+        addresses = address_qs.values(
+            "street_name", "street_number", "postal_code", "city"
+        )
 
         return {
-            "cities": filtered.values("city")
-            .annotate(count=Count("id"))
-            .order_by("-count")[:5],
-            "streets": filtered.values("street_name", "postal_code")
-            .annotate(count=Count("id"))
-            .order_by("-count")[:5],
-            "addresses": filtered.filter(
-                Q(street_name__icontains=query) & Q(postal_code__icontains=query)
-            ).values("street_name", "street_number", "postal_code")[:5],
-            # Add filter counts for UI display
-            "filter_counts": {
-                "total": filtered.count(),
-                "filtered": filtered.count() if property_types else None,
-            },
+            "cities": cities,
+            "streets": streets,
+            "addresses": addresses,
+            # "filter_counts": {
+            #     "total": (cities_qs.count() + streets_qs.count() + address_qs.count()),
+            #     "filtered": base_qs.count() if property_types else None,
+            # },
         }
