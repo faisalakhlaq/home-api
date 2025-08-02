@@ -1,7 +1,7 @@
 from typing import Any, Dict
 import logging
 
-from apps.properties.models import Property
+from apps.properties.models import Property, PropertyStatus, PropertyType
 
 import random
 
@@ -266,9 +266,12 @@ test_data = [
         "roof_type": random.choice(
             ["Flat", "Pitched", "Gable", "Hip"]
         ),  # Random roof type
+        "property_type": random.choice(PropertyType.names),
+        "status": PropertyStatus.ACTIVE,
     }
-    for i in range(0, 37)  # Generate 40 records
+    for i in range(0, 37)  # Generate ~40 records
 ]
+
 
 for address, property in zip(address_data, test_data):
     property.update(**address)
