@@ -1,6 +1,6 @@
 from textwrap import dedent
 
-property_count__doc = dedent(
+property_count_doc = dedent(
     """
     Returns the number of properties that match the applied filters.
 

@@ -25,7 +25,7 @@ from drf_spectacular.utils import (
 from apps.core.utils import CharInFilter, CustomFilterSet, set_docstring
 from apps.core.views import BaseAPIViewSet
 from apps.locations.models import City
-from apps.properties.docs import property_count__doc
+from apps.properties.docs import property_count_doc
 from apps.properties.models import Property, PropertyStatus, PropertyType
 from apps.properties.querysets import (
     property_list_queryset,
@@ -219,7 +219,7 @@ class PropertyViewSet(BaseAPIViewSet[Property]):
 
     @extend_schema(
         summary="Get total properties",
-        description=property_count__doc,
+        description=property_count_doc,
         parameters=[
             OpenApiParameter(
                 name="country_code",
@@ -255,7 +255,7 @@ class PropertyViewSet(BaseAPIViewSet[Property]):
         methods=["GET"],
         url_name="count",
     )
-    @set_docstring(property_count__doc)
+    @set_docstring(property_count_doc)
     def count(self, request: Request, *args: Any, **kwargs: Any) -> Response:
         filtered_queryset = self.filter_queryset(self.get_queryset())
         count = filtered_queryset.count()
