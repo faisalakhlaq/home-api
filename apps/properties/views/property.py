@@ -161,7 +161,7 @@ class PropertyViewSet(BaseAPIViewSet[Property]):
     def destroy(self, request: Request, *args: Any, **kwargs: Any) -> Response:
         """Delete operation on the `Property` is not allowed."""
         return Response(
-            {"error": "`Property` deletion is not allowed."},
+            {"detail": "`Property` deletion is not allowed."},
             status=HTTP_405_METHOD_NOT_ALLOWED,
         )
 
@@ -184,6 +184,7 @@ class PropertyViewSet(BaseAPIViewSet[Property]):
                 required=True,
                 type=str,
                 default="MK",
+                location=OpenApiParameter.QUERY,
                 examples=[
                     OpenApiExample("North Mecedonia", value="MK"),
                     OpenApiExample("Denmark", value="DK"),
@@ -226,6 +227,7 @@ class PropertyViewSet(BaseAPIViewSet[Property]):
                 required=True,
                 type=str,
                 default="MK",
+                location=OpenApiParameter.QUERY,
                 examples=[
                     OpenApiExample("North Mecedonia", value="MK"),
                     OpenApiExample("Denmark", value="DK"),

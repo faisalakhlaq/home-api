@@ -155,7 +155,7 @@ class TestPropertyAPI(TestCase):
         self.client.force_authenticate(user=self.user)
         res = self.client.delete(url)
         self.assertEqual(res.status_code, 405)
-        self.assertIn("`Property` deletion is not allowed.", res.data["error"])
+        self.assertIn("`Property` deletion is not allowed.", res.data["detail"])
         prop.delete()
 
     def test_create_property_unauthenticated(self):

@@ -5,13 +5,15 @@ from drf_spectacular.utils import (
     OpenApiParameter,
     OpenApiResponse,
     extend_schema,
+    inline_serializer,
 )
 
-from rest_framework.views import APIView
-from rest_framework.response import Response
-from rest_framework.request import Request
 from rest_framework import status
 from rest_framework.permissions import AllowAny
+from rest_framework.response import Response
+from rest_framework.request import Request
+from rest_framework.serializers import CharField as SerialzierCharField
+from rest_framework.views import APIView
 
 from apps.properties.services.search import PropertySearch
 
@@ -41,14 +43,17 @@ class PropertySearchAPI(APIView):
 
     @extend_schema(
         summary="Property search endpoint",
-        description="""Boligsiden-style property search with type filtering.
-        Returns hierarchical results (cities, streets, addresses) with counts.""",
+        description="""Incremental property search with type filtering.
+        Returns hierarchical results (cities, streets, addresses) with counts.
+        All three levels are always returned, with counts representing matches
+        at each level.""",
         parameters=[
             OpenApiParameter(
                 name="text",
                 description="Search query (min 2 characters)",
                 required=True,
                 type=str,
+                location=OpenApiParameter.QUERY,
                 examples=[
                     OpenApiExample("Example 1 (City)", value="Bitola"),
                     OpenApiExample("Example 2 (City)", value="køben"),
@@ -62,6 +67,7 @@ class PropertySearchAPI(APIView):
                 required=False,
                 type=str,
                 default="MK",
+                location=OpenApiParameter.QUERY,
                 examples=[
                     OpenApiExample("North Mecedonia", value="MK"),
                     OpenApiExample("Denmark", value="DK"),
@@ -70,9 +76,10 @@ class PropertySearchAPI(APIView):
             ),
             OpenApiParameter(
                 name="property_types",
-                description="Comma-separated list of property types to filter",
+                description="Comma-separated property types to filter",
                 required=False,
                 type=str,
+                location=OpenApiParameter.QUERY,
                 examples=[
                     OpenApiExample(
                         "Apartment and Villas and condos", value="apartment,villa,condo"
@@ -145,19 +152,25 @@ class PropertySearchAPI(APIView):
             ),
             400: OpenApiResponse(
                 description=_("Invalid request"),
+                response=inline_serializer(
+                    name="ErrorResponse", fields={"detail": SerialzierCharField()}
+                ),
                 examples=[
                     OpenApiExample(
                         "Query too short",
-                        value={"error": "Search must be at least 2 characters"},
+                        value={"detail": "Search must be at least 2 characters"},
                     )
                 ],
             ),
             500: OpenApiResponse(
                 description="Server error",
+                response=inline_serializer(
+                    name="ErrorResponse", fields={"detail": SerialzierCharField()}
+                ),
                 examples=[
                     OpenApiExample(
                         name="Database error",
-                        value={"error": "Database connection failed"},
+                        value={"detail": "Database connection failed"},
                     )
                 ],
             ),
@@ -177,7 +190,7 @@ class PropertySearchAPI(APIView):
 
         if len(query) < 2:
             return Response(
-                {"error": _("Search must be at least 2 characters")},
+                {"detail": _("Search must be at least 2 characters")},
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
@@ -188,5 +201,5 @@ class PropertySearchAPI(APIView):
             return Response(results, status.HTTP_200_OK)
         except Exception as e:
             return Response(
-                {"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR
+                {"detail": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
