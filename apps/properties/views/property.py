@@ -15,11 +15,17 @@ from rest_framework.status import (
     HTTP_405_METHOD_NOT_ALLOWED,
 )
 
-from drf_spectacular.utils import OpenApiExample, OpenApiParameter, extend_schema
+from drf_spectacular.utils import (
+    OpenApiExample,
+    OpenApiParameter,
+    OpenApiResponse,
+    extend_schema,
+)
 
-from apps.core.utils import CharInFilter, CustomFilterSet
+from apps.core.utils import CharInFilter, CustomFilterSet, set_docstring
 from apps.core.views import BaseAPIViewSet
 from apps.locations.models import City
+from apps.properties.docs import property_count_doc
 from apps.properties.models import Property, PropertyStatus, PropertyType
 from apps.properties.querysets import (
     property_list_queryset,
@@ -155,7 +161,7 @@ class PropertyViewSet(BaseAPIViewSet[Property]):
     def destroy(self, request: Request, *args: Any, **kwargs: Any) -> Response:
         """Delete operation on the `Property` is not allowed."""
         return Response(
-            {"error": "`Property` deletion is not allowed."},
+            {"detail": "`Property` deletion is not allowed."},
             status=HTTP_405_METHOD_NOT_ALLOWED,
         )
 
@@ -178,6 +184,7 @@ class PropertyViewSet(BaseAPIViewSet[Property]):
                 required=True,
                 type=str,
                 default="MK",
+                location=OpenApiParameter.QUERY,
                 examples=[
                     OpenApiExample("North Mecedonia", value="MK"),
                     OpenApiExample("Denmark", value="DK"),
@@ -210,20 +217,46 @@ class PropertyViewSet(BaseAPIViewSet[Property]):
         }
         return Response(data=data, status=HTTP_200_OK)
 
+    @extend_schema(
+        summary="Get total properties",
+        description=property_count_doc,
+        parameters=[
+            OpenApiParameter(
+                name="country_code",
+                description="ISO 3166-1 country code",
+                required=True,
+                type=str,
+                default="MK",
+                location=OpenApiParameter.QUERY,
+                examples=[
+                    OpenApiExample("North Mecedonia", value="MK"),
+                    OpenApiExample("Denmark", value="DK"),
+                ],
+            ),
+            *PropertyFilter.spectacular_parameters(exclude_fields=["country_code"]),
+        ],
+        responses={
+            200: OpenApiResponse(
+                description="Number of properties matching the given filter",
+                response={"type": "object", "response": {"count": "integer"}},
+                examples=[
+                    OpenApiExample(
+                        "Successful response",
+                        value={
+                            "count": 30,
+                        },
+                    )
+                ],
+            )
+        },
+    )
     @action(
         detail=False,
         methods=["GET"],
         url_name="count",
     )
+    @set_docstring(property_count_doc)
     def count(self, request: Request, *args: Any, **kwargs: Any) -> Response:
-        """
-        Returns the number of properties that match the applied filters.
-
-        This endpoint applies the same filtering logic as the list view. By default,
-        it returns the count of active properties. If a 'status' query parameter
-        is provided, the count will reflect the number of properties in the specified
-        status(es).
-        """
         filtered_queryset = self.filter_queryset(self.get_queryset())
         count = filtered_queryset.count()
         return Response(data={"count": count}, status=HTTP_200_OK)

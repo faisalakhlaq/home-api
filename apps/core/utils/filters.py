@@ -146,6 +146,7 @@ class CustomFilterSet(django_filters.FilterSet):  # type: ignore
                     description=param_description,
                     type=param_type,
                     required=False,
+                    location=OpenApiParameter.QUERY,
                 )
             )
         return parameters

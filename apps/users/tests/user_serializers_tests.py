@@ -105,7 +105,7 @@ class CustomRegisterSerializerTests(TestCase):
         serializer = CustomRegisterSerializer(data=data)
         self.assertFalse(serializer.is_valid())
         self.assertIn(
-            "The two password fields didn't match.", serializer.errors["error"]
+            "The two password fields didn't match.", serializer.errors["detail"]
         )
 
     def test_duplicate_email(self):

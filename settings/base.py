@@ -125,7 +125,7 @@ REST_FRAMEWORK = {
     # 3.0 gives you the option to serialize decimals as floats.
     # if COERCE_DECIMAL_TO_STRING then the decimals are serialized as strings.
     "COERCE_DECIMAL_TO_STRING": False,
-    "NON_FIELD_ERRORS_KEY": "error",
+    "NON_FIELD_ERRORS_KEY": "detail",
     "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
     "DEFAULT_AUTHENTICATION_CLASSES": [
         "rest_framework_simplejwt.authentication.JWTAuthentication",
