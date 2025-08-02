@@ -55,10 +55,10 @@ class PropertySearchAPI(APIView):
                 type=str,
                 location=OpenApiParameter.QUERY,
                 examples=[
-                    OpenApiExample("Example 1 (City)", value="Bitola"),
+                    OpenApiExample("Example 1 (City)", value="Bo"),
                     OpenApiExample("Example 2 (City)", value="køben"),
                     OpenApiExample("Example 3 (Postal Code)", value="7000"),
-                    OpenApiExample("Example 3 (Street)", value="Dame Gruev"),
+                    OpenApiExample("Example 3 (Street)", value="Boris Kidrič"),
                 ],
             ),
             OpenApiParameter(
