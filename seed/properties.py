@@ -98,6 +98,14 @@ address_data = [
         "country_code": "MK",
         "city": "Struga",
         "street_name": "Kej Boris Kidrič",
+        "street_number": "23",
+        "postal_code": "6330",
+    },
+    {
+        "country_code": "MK",
+        "city": "Struga",
+        "street_name": "Kej Boris Kidrič",
+        "street_number": "45",
         "postal_code": "6330",
     },
     {
@@ -192,6 +200,12 @@ address_data = [
     },
     {
         "country_code": "MK",
+        "city": "Bogdanci",
+        "street_name": "Tito",
+        "postal_code": "1480",
+    },
+    {
+        "country_code": "MK",
         "city": "Valandovo",
         "street_name": "Goce Delčev",
         "postal_code": "1470",
@@ -273,8 +287,8 @@ test_data = [
 ]
 
 
-for address, property in zip(address_data, test_data):
-    property.update(**address)
+for address, prop in zip(address_data, test_data):
+    prop.update(**address)
 
 
 # Create Property objects

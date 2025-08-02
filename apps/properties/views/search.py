@@ -55,10 +55,10 @@ class PropertySearchAPI(APIView):
                 type=str,
                 location=OpenApiParameter.QUERY,
                 examples=[
-                    OpenApiExample("Example 1 (City)", value="Bitola"),
+                    OpenApiExample("Example 1 (City)", value="Bo"),
                     OpenApiExample("Example 2 (City)", value="køben"),
                     OpenApiExample("Example 3 (Postal Code)", value="7000"),
-                    OpenApiExample("Example 3 (Street)", value="Dame Gruev"),
+                    OpenApiExample("Example 3 (Street)", value="Boris Kidrič"),
                 ],
             ),
             OpenApiParameter(
@@ -98,7 +98,7 @@ class PropertySearchAPI(APIView):
                             "items": {
                                 "type": "object",
                                 "properties": {
-                                    "city_name": {"type": "string"},
+                                    "city": {"type": "string"},
                                     "count": {"type": "integer"},
                                 },
                             },
@@ -110,6 +110,7 @@ class PropertySearchAPI(APIView):
                                 "properties": {
                                     "street_name": {"type": "string"},
                                     "postal_code": {"type": "string"},
+                                    "city": {"type": "string"},
                                     "count": {"type": "integer"},
                                 },
                             },
@@ -122,6 +123,7 @@ class PropertySearchAPI(APIView):
                                     "street_name": {"type": "string"},
                                     "street_number": {"type": "string"},
                                     "postal_code": {"type": "string"},
+                                    "city": {"type": "string"},
                                 },
                             },
                         },
@@ -131,20 +133,55 @@ class PropertySearchAPI(APIView):
                     OpenApiExample(
                         "Successful response",
                         value={
-                            "cities": [{"city_name": "København", "count": 1249}],
+                            "cities": [
+                                {"city": "Bogdanci", "count": 2},
+                                {"city": "Bogovinje", "count": 1},
+                            ],
                             "streets": [
                                 {
-                                    "street_name": "Københavnsvej",
-                                    "postal_code": "2300",
-                                    "count": 42,
-                                }
+                                    "street_name": "Kej Boris Kidrič",
+                                    "postal_code": "6330",
+                                    "city": "Struga",
+                                    "count": 2,
+                                },
+                                {
+                                    "street_name": "Boris Kidrič",
+                                    "postal_code": "2220",
+                                    "city": "Probistip",
+                                    "count": 1,
+                                },
+                                {
+                                    "street_name": "Boris Kidrič",
+                                    "postal_code": "1487",
+                                    "city": "Dojran",
+                                    "count": 1,
+                                },
                             ],
                             "addresses": [
                                 {
-                                    "street_name": "Københavnsvej",
-                                    "street_number": "15",
-                                    "postal_code": "2300",
-                                }
+                                    "street_name": "Kej Boris Kidrič",
+                                    "street_number": "23",
+                                    "postal_code": "6330",
+                                    "city": "Struga",
+                                },
+                                {
+                                    "street_name": "Kej Boris Kidrič",
+                                    "street_number": "45",
+                                    "postal_code": "6330",
+                                    "city": "Struga",
+                                },
+                                {
+                                    "street_name": "Boris Kidrič",
+                                    "street_number": "null",
+                                    "postal_code": "2220",
+                                    "city": "Probistip",
+                                },
+                                {
+                                    "street_name": "Boris Kidrič",
+                                    "street_number": "null",
+                                    "postal_code": "1487",
+                                    "city": "Dojran",
+                                },
                             ],
                         },
                     )

@@ -11,5 +11,5 @@ router = DefaultRouter()
 router.register("properties", PropertyViewSet, basename="properties")
 
 urlpatterns = router.urls + [
-    path("search", PropertySearchAPI.as_view(), name="property-search"),
+    path("properties/search", PropertySearchAPI.as_view(), name="property-search"),
 ]
