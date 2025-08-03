@@ -73,7 +73,7 @@ class AuthUserDetailsSerializer(ModelSerializer[User]):
 
 
 class CustomRegisterSerializer(RegisterSerializer):  # type: ignore [misc]
-    username = None  # disables handling of username if expected by base
+    username = CharField(required=False)
     password1 = CharField(
         write_only=True,
         style={"input_type": "password"},
@@ -88,8 +88,8 @@ class CustomRegisterSerializer(RegisterSerializer):  # type: ignore [misc]
     email = EmailField(required=True)
     agreed_to_terms = BooleanField(required=True)
     phone_number = CharField(required=False)
-    is_business_user = BooleanField(required=False)
-    is_company_admin = BooleanField(required=False)
+    # is_business_user = BooleanField(required=False, default=False)
+    # is_company_admin = BooleanField(required=False, default=False)
 
     def validate_email(self, email: str) -> str:
         """
@@ -124,8 +124,8 @@ class CustomRegisterSerializer(RegisterSerializer):  # type: ignore [misc]
                 "first_name": self.validated_data.get("first_name", ""),
                 "last_name": self.validated_data.get("last_name", ""),
                 "phone_number": self.validated_data.get("phone_number", ""),
-                "is_business_user": self.validated_data.get("is_business_user", False),
-                "is_company_admin": self.validated_data.get("is_company_admin", False),
+                # "is_business_user": self.validated_data.get("is_business_user", False),
+                # "is_company_admin": self.validated_data.get("is_company_admin", False),
                 "agreed_to_terms": self.validated_data.get("agreed_to_terms", False),
             }
         )
