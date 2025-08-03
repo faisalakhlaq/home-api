@@ -4,6 +4,7 @@ from rest_framework.serializers import (
     BaseSerializer,
     CharField,
     IntegerField,
+    Serializer,
 )
 
 
@@ -20,3 +21,7 @@ class IdNameListSerializer(BaseSerializer[Any]):
 
     def to_representation(self, obj: Any) -> Any:
         return obj
+
+
+class ErrorResponseSerializer(Serializer):  # type: ignore[type-arg]
+    detail = CharField()

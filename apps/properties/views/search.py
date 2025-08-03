@@ -1,3 +1,5 @@
+import logging
+
 from django.utils.translation import gettext_lazy as _
 
 from drf_spectacular.utils import (
@@ -5,17 +7,22 @@ from drf_spectacular.utils import (
     OpenApiParameter,
     OpenApiResponse,
     extend_schema,
-    inline_serializer,
 )
 
 from rest_framework import status
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework.request import Request
-from rest_framework.serializers import CharField as SerialzierCharField
 from rest_framework.views import APIView
 
+from apps.core.serializers import ErrorResponseSerializer
 from apps.properties.services.search import PropertySearch
+from apps.properties.serializers import (
+    PropertySearchQuerySerializer,
+    PropertySearchResponseSerializer,
+)
+
+logger = logging.getLogger(__name__)
 
 
 class PropertySearchAPI(APIView):
@@ -64,7 +71,7 @@ class PropertySearchAPI(APIView):
             OpenApiParameter(
                 name="country_code",
                 description="ISO 3166-1 country code",
-                required=False,
+                required=True,
                 type=str,
                 default="MK",
                 location=OpenApiParameter.QUERY,
@@ -87,111 +94,12 @@ class PropertySearchAPI(APIView):
                 ],
             ),
         ],
+        request=PropertySearchQuerySerializer,
         responses={
-            200: OpenApiResponse(
-                description="Hierarchical search results",
-                response={
-                    "type": "object",
-                    "properties": {
-                        "cities": {
-                            "type": "array",
-                            "items": {
-                                "type": "object",
-                                "properties": {
-                                    "city": {"type": "string"},
-                                    "count": {"type": "integer"},
-                                },
-                            },
-                        },
-                        "streets": {
-                            "type": "array",
-                            "items": {
-                                "type": "object",
-                                "properties": {
-                                    "street_name": {"type": "string"},
-                                    "postal_code": {"type": "string"},
-                                    "city": {"type": "string"},
-                                    "count": {"type": "integer"},
-                                },
-                            },
-                        },
-                        "addresses": {
-                            "type": "array",
-                            "items": {
-                                "type": "object",
-                                "properties": {
-                                    "street_name": {"type": "string"},
-                                    "street_number": {"type": "string"},
-                                    "postal_code": {"type": "string"},
-                                    "city": {"type": "string"},
-                                },
-                            },
-                        },
-                    },
-                },
-                examples=[
-                    OpenApiExample(
-                        "Successful response",
-                        value={
-                            "cities": [
-                                {"city": "Bogdanci", "count": 2},
-                                {"city": "Bogovinje", "count": 1},
-                            ],
-                            "streets": [
-                                {
-                                    "street_name": "Kej Boris Kidrič",
-                                    "postal_code": "6330",
-                                    "city": "Struga",
-                                    "count": 2,
-                                },
-                                {
-                                    "street_name": "Boris Kidrič",
-                                    "postal_code": "2220",
-                                    "city": "Probistip",
-                                    "count": 1,
-                                },
-                                {
-                                    "street_name": "Boris Kidrič",
-                                    "postal_code": "1487",
-                                    "city": "Dojran",
-                                    "count": 1,
-                                },
-                            ],
-                            "addresses": [
-                                {
-                                    "street_name": "Kej Boris Kidrič",
-                                    "street_number": "23",
-                                    "postal_code": "6330",
-                                    "city": "Struga",
-                                },
-                                {
-                                    "street_name": "Kej Boris Kidrič",
-                                    "street_number": "45",
-                                    "postal_code": "6330",
-                                    "city": "Struga",
-                                },
-                                {
-                                    "street_name": "Boris Kidrič",
-                                    "street_number": "null",
-                                    "postal_code": "2220",
-                                    "city": "Probistip",
-                                },
-                                {
-                                    "street_name": "Boris Kidrič",
-                                    "street_number": "null",
-                                    "postal_code": "1487",
-                                    "city": "Dojran",
-                                },
-                            ],
-                        },
-                    )
-                ],
-            ),
+            200: PropertySearchResponseSerializer,
             400: OpenApiResponse(
                 description=_("Invalid request"),
-                response=inline_serializer(
-                    name="ErrorResponse", fields={"detail": SerialzierCharField()}
-                ),
+                response=ErrorResponseSerializer,
                 examples=[
                     OpenApiExample(
                         "Query too short",
@@ -201,9 +109,7 @@ class PropertySearchAPI(APIView):
             ),
             500: OpenApiResponse(
                 description="Server error",
-                response=inline_serializer(
-                    name="ErrorResponse", fields={"detail": SerialzierCharField()}
-                ),
+                response=ErrorResponseSerializer,
                 examples=[
                     OpenApiExample(
                         name="Database error",
@@ -214,29 +120,23 @@ class PropertySearchAPI(APIView):
         },
     )
     def get(self, request: Request) -> Response:
-        query = request.query_params.get("text", "").strip()
-        country_code = request.query_params.get("country_code", "DK")
-        if country_code:
-            country_code = country_code.upper()
+        query_serializer = PropertySearchQuerySerializer(data=request.query_params)
+        query_serializer.is_valid(raise_exception=True)
 
-        property_types = (
-            request.query_params.get("property_types", "").split(",")
-            if "property_types" in request.query_params
-            else None
-        )
-
-        if len(query) < 2:
-            return Response(
-                {"detail": _("Search must be at least 2 characters")},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
+        validated_data = query_serializer.validated_data
+        query = validated_data["text"]
+        country_code = validated_data.get("country_code").upper()
+        property_types = validated_data.get("property_types")
 
         try:
             results = PropertySearch.quick_search(
                 query=query, country_code=country_code, property_types=property_types
             )
-            return Response(results, status.HTTP_200_OK)
-        except Exception as e:
+            response_serializer = PropertySearchResponseSerializer(results)
+            return Response(response_serializer.data, status.HTTP_200_OK)
+        except Exception as ex:
+            logger.exception(msg=str(ex), exc_info=ex)
+            error_serializer = ErrorResponseSerializer({"detail": str(ex)})
             return Response(
-                {"detail": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR
+                error_serializer.data, status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
