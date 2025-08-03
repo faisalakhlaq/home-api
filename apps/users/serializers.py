@@ -1,21 +1,48 @@
 import re
-from typing import Any
+from typing import Any, Dict
 
-from django.core.exceptions import ValidationError
 from django.utils.translation import gettext_lazy as _
+from django.contrib.auth import authenticate
 
 from rest_framework.serializers import (
     BooleanField,
     CharField,
     EmailField,
     ModelSerializer,
+    ValidationError,
 )
 
 from dj_rest_auth.registration.serializers import RegisterSerializer
+from dj_rest_auth.serializers import LoginSerializer
 
 from allauth.account.adapter import get_adapter
 
 from .models import User
+
+
+class CustomLoginSerializer(LoginSerializer):
+    username = None
+    email = EmailField(required=True)
+    password = CharField(style={"input_type": "password"}, trim_whitespace=False)
+
+    def validate(self, attrs: Dict[str, Any]) -> Dict[str, Any]:
+        email = attrs.get("email")
+        password = attrs.get("password")
+
+        if email and password:
+            user = self.get_auth_user(email=email, password=password)
+            if user:
+                attrs["user"] = user
+                return attrs
+            else:
+                raise ValidationError(_("Unable to log in with provided credentials."))
+        else:
+            raise ValidationError(_('Must include "email" and "password".'))
+
+    def get_auth_user(self, email: str, password: str) -> Any:
+        return authenticate(
+            request=self.context.get("request"), email=email, password=password
+        )
 
 
 class AuthUserDetailsSerializer(ModelSerializer[User]):

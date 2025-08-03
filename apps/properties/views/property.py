@@ -127,6 +127,9 @@ class PropertyViewSet(BaseAPIViewSet[Property]):
         This ensures consistent filtering across API views and supports performance
         optimizations for listing large datasets.
         """
+        if getattr(self, "swagger_fake_view", False):
+            return Property.objects.none()
+
         if self.action in ["list", "count"]:
             country_code = self.request.GET.get("country_code")
             if not country_code:
