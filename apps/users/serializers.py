@@ -1,21 +1,48 @@
 import re
-from typing import Any
+from typing import Any, Dict
 
-from django.core.exceptions import ValidationError
 from django.utils.translation import gettext_lazy as _
+from django.contrib.auth import authenticate
 
 from rest_framework.serializers import (
     BooleanField,
     CharField,
     EmailField,
     ModelSerializer,
+    ValidationError,
 )
 
 from dj_rest_auth.registration.serializers import RegisterSerializer
+from dj_rest_auth.serializers import LoginSerializer
 
 from allauth.account.adapter import get_adapter
 
 from .models import User
+
+
+class CustomLoginSerializer(LoginSerializer):
+    username = None
+    email = EmailField(required=True)
+    password = CharField(style={"input_type": "password"}, trim_whitespace=False)
+
+    def validate(self, attrs: Dict[str, Any]) -> Dict[str, Any]:
+        email = attrs.get("email")
+        password = attrs.get("password")
+
+        if email and password:
+            user = self.get_auth_user(email=email, password=password)
+            if user:
+                attrs["user"] = user
+                return attrs
+            else:
+                raise ValidationError(_("Unable to log in with provided credentials."))
+        else:
+            raise ValidationError(_('Must include "email" and "password".'))
+
+    def get_auth_user(self, email: str, password: str) -> Any:
+        return authenticate(
+            request=self.context.get("request"), email=email, password=password
+        )
 
 
 class AuthUserDetailsSerializer(ModelSerializer[User]):
@@ -46,7 +73,7 @@ class AuthUserDetailsSerializer(ModelSerializer[User]):
 
 
 class CustomRegisterSerializer(RegisterSerializer):  # type: ignore [misc]
-    username = None  # disables handling of username if expected by base
+    username = CharField(required=False)
     password1 = CharField(
         write_only=True,
         style={"input_type": "password"},
@@ -61,8 +88,8 @@ class CustomRegisterSerializer(RegisterSerializer):  # type: ignore [misc]
     email = EmailField(required=True)
     agreed_to_terms = BooleanField(required=True)
     phone_number = CharField(required=False)
-    is_business_user = BooleanField(required=False)
-    is_company_admin = BooleanField(required=False)
+    # is_business_user = BooleanField(required=False, default=False)
+    # is_company_admin = BooleanField(required=False, default=False)
 
     def validate_email(self, email: str) -> str:
         """
@@ -97,8 +124,8 @@ class CustomRegisterSerializer(RegisterSerializer):  # type: ignore [misc]
                 "first_name": self.validated_data.get("first_name", ""),
                 "last_name": self.validated_data.get("last_name", ""),
                 "phone_number": self.validated_data.get("phone_number", ""),
-                "is_business_user": self.validated_data.get("is_business_user", False),
-                "is_company_admin": self.validated_data.get("is_company_admin", False),
+                # "is_business_user": self.validated_data.get("is_business_user", False),
+                # "is_company_admin": self.validated_data.get("is_company_admin", False),
                 "agreed_to_terms": self.validated_data.get("agreed_to_terms", False),
             }
         )

@@ -1,3 +1,5 @@
+from typing import Any
+
 from .app_settings import (
     JWTSerializer as JWTSerializer,
     JWTSerializerWithExpiration as JWTSerializerWithExpiration,
@@ -11,9 +13,9 @@ from .app_settings import (
 )
 from .models import get_token_model as get_token_model
 from .utils import jwt_encode as jwt_encode
+
 from rest_framework.generics import GenericAPIView, RetrieveUpdateAPIView
 from rest_framework.views import APIView
-from typing import Any
 
 class LoginView(GenericAPIView):
     permission_classes: Any

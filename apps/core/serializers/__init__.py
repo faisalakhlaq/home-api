@@ -1,5 +1,6 @@
-from .id_name_list import IdNameListSerializer
+from .misc import ErrorResponseSerializer, IdNameListSerializer
 
 __all__ = [
     "IdNameListSerializer",
+    "ErrorResponseSerializer",
 ]
