@@ -16,6 +16,16 @@ For detailed installation instructions (including virtual environment setup), AP
 - [Developer Documentation Index](./docs/index.md)
 - [API Reference](./docs/api-reference/auto-generated-docs.md)
 
+
+## Current Status
+
+This project is actively under development. The backend API is functional and available live for testing and integration at:
+
+- [Live API Swagger UI](https://faisalakhlaq.pythonanywhere.com/api/v1/schema/swagger-ui/)
+- [Live API redoc](https://faisalakhlaq.pythonanywhere.com/api/v1/schema/redoc/)
+
+A React Native mobile application is also in progress, which will consume this API to provide a seamless real estate browsing experience.
+
 ## Getting Started (with Docker Compose)
 
 The quickest way to get the Balkan API running for local development is using Docker Compose.
