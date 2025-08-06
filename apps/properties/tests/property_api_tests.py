@@ -1,27 +1,22 @@
 from datetime import datetime, timezone
 
-from django.contrib.auth import get_user_model
-from django.contrib.contenttypes.models import ContentType
-from django.test import TestCase
 from django.urls import reverse
 
-from rest_framework.test import APIClient, APIRequestFactory
+from rest_framework.exceptions import ValidationError
 
-from apps.core.models import Address, City, Genre, Status
-from apps.core.serializers import IdNameListSerializer
-from apps.properties.models import Property
+from apps.locations.models import City, Country
+from apps.properties.models import PropertyStatus, PropertyType
 from apps.properties.querysets import property_list_queryset
 from apps.properties.serializers import (
-    PropertyDetailSerializer,
     PropertyListSerializer,
     PropertySerializer,
 )
 from apps.properties.views import PropertyViewSet
 
-User = get_user_model()
+from .test_setup import TestSetUp
 
 
-class TestPropertyAPI(TestCase):
+class TestPropertyAPI(TestSetUp):
     @classmethod
     def setUpTestData(cls):
         super().setUpTestData()
@@ -30,71 +25,15 @@ class TestPropertyAPI(TestCase):
         cls.property_form_url: str = reverse(
             "apps.properties:properties-get-create-property-form-data"
         )
-
-        cls.property_payload = {
-            "price": "50000",
-            "price_currency": "Euro",
-            "area": 110.0,
-            "total_area": 130.0,
-            "total_rooms": 4.0,
-            "description": "Комфорен стан на адреса Маршал Тито во Кичево",
-        }
-        cls.address_payload = {
-            "street": "Maršal Tito",
-            "city": "Kičevo",
-            "region": "R12",
-            "postal_code": "6250",
-            "country": "North Mecedonia",
-        }
-        cls.property_content_type = ContentType.objects.get_for_model(model=Property)
-
-        # Create a test user
-        cls.user = User.objects.create_user(
-            username="testuser", email="test@example.com", password="testpass123"
-        )
+        cls.property_count_url: str = reverse("apps.properties:properties-count")
 
     def setUp(self) -> None:
         super().setUp()
-        # The client may store state (e.g., authentication tokens) that
-        # shouldn’t leak between tests. Therefore, keep in setUp.
-        self.client = APIClient()
-        self.factory = APIRequestFactory()
 
-    def create_property(self, **params):
-        address = dict(self.address_payload)
-        payload = dict(self.property_payload)
-        payload["address"] = Address.objects.create(**address)
-        payload.update(params)
-        return Property.objects.create(**payload)
-
-    def _create_status(self, name: str, **kwargs) -> Status:
-        """Helper to create a Status object with default values."""
-        payload = {
-            "name": name,
-            "sorting_order": 1,
-            "active": True,
-            "description": f"Status for {name}",
-            "model": self.property_content_type,
-        }
-        payload.update(kwargs)  # Allow overriding defaults
-        return Status.objects.create(**payload)
-
-    def _create_genre(self, name: str, **kwargs) -> Genre:
-        """Helper to create a Genre object with default values."""
-        payload = {
-            "name": name,
-            "sorting_order": 1,
-            "active": True,
-            "description": f"Genre for {name}",
-            "model": self.property_content_type,
-        }
-        payload.update(kwargs)  # Allow overriding defaults
-        return Genre.objects.create(**payload)
-
-    def test_prop_property_list(self) -> None:
+    def test_property_list(self) -> None:
         p1 = self.create_property()
         p2 = self.create_property()
-        res = self.client.get(self.list_url)
+        res = self.client.get(f"{self.list_url}?country_code=MK")
         self.assertEqual(res.status_code, 200)
         self.assertEqual(len(res.data), 2)
         p1.delete()
@@ -104,7 +43,7 @@ class TestPropertyAPI(TestCase):
         view = PropertyViewSet()
         view.action = "retrieve"
         serializer_class = view.get_serializer_class()
-        self.assertEqual(serializer_class, PropertyDetailSerializer)
+        self.assertEqual(serializer_class, PropertySerializer)
 
     def test_prop_list_serializer_class(self):
         view = PropertyViewSet()
@@ -118,29 +57,45 @@ class TestPropertyAPI(TestCase):
         serializer_class = view.get_serializer_class()
         self.assertEqual(serializer_class, PropertySerializer)
 
-    def test_list_queryset(self):
+    def test_list_queryset_country_code_validation(self):
         view = PropertyViewSet()
         request = self.factory.get("/")
         view.request = request
         view.action = "list"
 
+        with self.assertRaises(ValidationError) as ve:
+            view.get_queryset()
+        self.assertIn("country_code", ve.exception.detail)
+
+    def test_list_queryset(self):
+        view = PropertyViewSet()
+        # For unauthenticated case, include country_code in the request
+        request = self.factory.get("/", {"country_code": "US"})  # Example: "US"
+        view.request = request
+        view.action = "list"
+
         # Test unauthenticated case
         queryset = view.get_queryset()
-        expected_queryset = (
-            property_list_queryset()
-        )  # Use the same function as your view
+        # You might need to adjust property_list_queryset to accept country_code
+        expected_queryset = property_list_queryset(country_code="US")
         self.assertQuerySetEqual(queryset, expected_queryset, transform=lambda x: x)
 
         # Test authenticated case
         request.user = self.user
+        # For authenticated case, also include country_code
+        request_auth = self.factory.get("/", {"country_code": "US"})
+        request_auth.user = self.user  # Assign user to the new request object
+        view.request = request_auth  # Update the view's request
         queryset = view.get_queryset()
-        expected_queryset = property_list_queryset(user_id=self.user.id)
+        expected_queryset = property_list_queryset(
+            user_id=self.user.id, country_code="US"
+        )
         self.assertQuerySetEqual(queryset, expected_queryset, transform=lambda x: x)
 
     def test_property_create(self):
         self.client.force_authenticate(user=self.user)
 
-        payload = {**self.property_payload, "address": self.address_payload}
+        payload = {**self.property_payload}
         res = self.client.post(self.list_url, data=payload, format="json")
         response_data = res.json()
         self.assertEqual(res.status_code, 201)
@@ -154,8 +109,7 @@ class TestPropertyAPI(TestCase):
         self.assertEqual(
             res.data["description"], "Комфорен стан на адреса Маршал Тито во Кичево"
         )
-        self.assertIn("address", response_data)
-        self.assertEqual(response_data["address"]["street"], "Maršal Tito")
+        self.assertEqual(response_data["street_name"], "Maršal Tito")
 
     def test_delete_property_not_allowed(self) -> None:
         prop = self.create_property()
@@ -163,7 +117,7 @@ class TestPropertyAPI(TestCase):
         self.client.force_authenticate(user=self.user)
         res = self.client.delete(url)
         self.assertEqual(res.status_code, 405)
-        self.assertIn("`Property` deletion is not allowed.", res.data["error"])
+        self.assertIn("`Property` deletion is not allowed.", res.data["detail"])
         prop.delete()
 
     def test_create_property_unauthenticated(self):
@@ -189,39 +143,29 @@ class TestPropertyAPI(TestCase):
 
     def test_get_create_property_form_data(self) -> None:
         self.client.force_authenticate(user=self.user)
-        # create related objects
-        self._create_status(name="For Sale", sorting_order=2)
-        self._create_status(name="Sold", sorting_order=3)
-        self._create_status(name="Rented", sorting_order=1)
-
-        self._create_genre(name="Apartment", sorting_order=1)
-        self._create_genre(name="House", sorting_order=2)
-        self._create_genre(name="Commercial", sorting_order=3)
 
         cities_to_create = []
+        self.country = Country.objects.create(code="DK", name="Denmark")
         for i in range(1, 20):
-            cities_to_create.append(City(name=f"City {i}", country="DK"))
+            cities_to_create.append(
+                City(
+                    name=f"Copenhagen {i}",
+                    country=self.country,
+                    region="Capital Region",
+                    slug=f"copenhagen-{i}-dk",
+                )
+            )
         City.objects.bulk_create(cities_to_create)
 
         res = self.client.get(self.property_form_url)
         self.assertEqual(res.status_code, 200)
 
         # --- Assert Genres ---
-        expected_genres_queryset = (
-            Genre.objects.only("id", "name").order_by("name").values("id", "name")
-        )
-        expected_genres_data = IdNameListSerializer(
-            expected_genres_queryset, many=True
-        ).data
+        expected_genres_data = [val for val in PropertyType.values]
         self.assertEqual(res.data["types"], expected_genres_data)
 
         # --- Assert Statuses ---
-        expected_statuses_queryset = (
-            Status.objects.only("id", "name").order_by("name").values("id", "name")
-        )
-        expected_statuses_data = IdNameListSerializer(
-            expected_statuses_queryset, many=True
-        ).data
+        expected_statuses_data = [st for st in PropertyStatus.values]
         self.assertEqual(res.data["status"], expected_statuses_data)
 
         # --- Assert Cities ---
@@ -246,7 +190,7 @@ class TestPropertyAPI(TestCase):
             price=300, created_at=datetime(2023, 1, 3, tzinfo=timezone.utc)
         )
 
-        res = self.client.get(self.list_url)
+        res = self.client.get(f"{self.list_url}?country_code=MK")
         self.assertEqual(res.status_code, 200)
         data = res.json()
 
@@ -271,7 +215,7 @@ class TestPropertyAPI(TestCase):
             price=200, created_at=datetime(2023, 1, 3, tzinfo=timezone.utc)
         )
 
-        res = self.client.get(f"{self.list_url}?ordering=price")
+        res = self.client.get(f"{self.list_url}?ordering=price&country_code=MK")
         self.assertEqual(res.status_code, 200)
         data = res.json()
 
@@ -294,7 +238,7 @@ class TestPropertyAPI(TestCase):
             price=200, created_at=datetime(2023, 1, 3, tzinfo=timezone.utc)
         )
 
-        res = self.client.get(f"{self.list_url}?ordering=-price")
+        res = self.client.get(f"{self.list_url}?ordering=-price&country_code=MK")
         self.assertEqual(res.status_code, 200)
         data = res.json()
 
@@ -324,7 +268,9 @@ class TestPropertyAPI(TestCase):
             created_at=datetime(2023, 1, 3, tzinfo=timezone.utc),
         )  # Same rooms as p1, lower price
 
-        res = self.client.get(f"{self.list_url}?ordering=total_rooms,-price")
+        res = self.client.get(
+            f"{self.list_url}?ordering=total_rooms,-price&country_code=MK"
+        )
         self.assertEqual(res.status_code, 200)
         data = res.json()
 
@@ -352,7 +298,9 @@ class TestPropertyAPI(TestCase):
         )
 
         # 'non_existent_field' is not in ordering_fields
-        res = self.client.get(f"{self.list_url}?ordering=non_existent_field")
+        res = self.client.get(
+            f"{self.list_url}?ordering=non_existent_field&country_code=MK"
+        )
         self.assertEqual(res.status_code, 200)
         data = res.json()
 
@@ -362,6 +310,29 @@ class TestPropertyAPI(TestCase):
         self.assertEqual(data[0]["id"], p_ids[0])
         self.assertEqual(data[1]["id"], p_ids[1])
         self.assertEqual(data[2]["id"], p_ids[2])
+
+    def test_count_properties(self) -> None:
+        sold_properties_count = 0
+        active_properties_count = 0
+
+        for i in range(10):
+            status = PropertyStatus.ACTIVE
+            if i % 3 == 0:
+                status = PropertyStatus.SOLD
+                sold_properties_count += 1
+            else:
+                active_properties_count += 1
+            self.create_property(status=status)
+
+        res = self.client.get(f"{self.property_count_url}?country_code=MK")
+        self.assertEqual(res.status_code, 200)
+        self.assertEqual(res.data["count"], active_properties_count)
+
+        res = self.client.get(
+            f"{self.property_count_url}?country_code=MK&status={PropertyStatus.SOLD}"
+        )
+        self.assertEqual(res.status_code, 200)
+        self.assertEqual(res.data["count"], sold_properties_count)
 
     def tearDown(self) -> None:
         return super().tearDown()

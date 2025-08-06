@@ -3,14 +3,13 @@ name: PR CI Pipeline
 on:
   pull_request:
     branches: [development]
-
-  push:
-    branches: [development]
+    types: [opened, synchronize, reopened, ready_for_review]
 
   workflow_dispatch:
 
 jobs:
   build_and_test:
+
     runs-on: ubuntu-latest
 
     env:
@@ -43,6 +42,11 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+
+      - name: Debug Event Info
+        run: |
+          echo "EVENT TYPE: ${{ github.event_name }}"
+          echo "REF: ${{ github.ref }}"
 
       - name: Set up Python 3.10
         uses: actions/setup-python@v5

@@ -1,13 +1,11 @@
 from django.contrib.auth import get_user_model
-from django.contrib.contenttypes.models import ContentType
 from django.test import TestCase
 from django.urls import reverse
 
 from rest_framework.test import APIClient, APIRequestFactory
 
 from apps.favorites.models import UserFavoriteProperty
-from apps.core.models import Address
-from apps.properties.models import Property
+from apps.properties.models.property import Property, PropertyStatus, PropertyType
 
 UserModel = get_user_model()
 
@@ -26,19 +24,23 @@ class TestUserFavoritePropertiesAPI(TestCase):
             "total_area": 130.0,
             "total_rooms": 4.0,
             "description": "Комфорен стан на адреса Маршал Тито во Кичево",
-        }
-        cls.address_payload = {
-            "street": "Maršal Tito",
+            "street_name": "Maršal Tito",
             "city": "Kičevo",
             "region": "R12",
             "postal_code": "6250",
-            "country": "North Mecedonia",
+            "country_code": "MK",
+            "status": PropertyStatus.ACTIVE,
+            "property_type": PropertyType.APARTMENT,
         }
-        cls.property_content_type = ContentType.objects.get_for_model(model=Property)
 
         # Create a test user
         cls.user = UserModel.objects.create_user(
-            username="testuser", email="test@example.com", password="testpass123"
+            username="testuser",
+            email="test@example.com",
+            password="testpass123",
+            first_name="Test",
+            last_name="Test",
+            agreed_to_terms=True,
         )
 
     def setUp(self) -> None:
@@ -49,9 +51,7 @@ class TestUserFavoritePropertiesAPI(TestCase):
         self.factory = APIRequestFactory()
 
     def create_property(self, **params):
-        address = dict(self.address_payload)
         payload = dict(self.property_payload)
-        payload["address"] = Address.objects.create(**address)
         payload.update(params)
         return Property.objects.create(**payload)
 
@@ -160,7 +160,12 @@ class TestUserFavoritePropertiesAPI(TestCase):
         Test that an authenticated user cannot retrieve another user's favorite.
         """
         other_user = UserModel.objects.create_user(
-            username="otheruser", email="other@example.com", password="otherpass123"
+            username="testuserAnother",
+            email="test123@example.com",
+            password="testpass123",
+            first_name="Test",
+            last_name="Test",
+            agreed_to_terms=True,
         )
         property_instance = self.create_property()
         other_favorite_instance = UserFavoriteProperty.objects.create(
@@ -215,9 +220,12 @@ class TestUserFavoritePropertiesAPI(TestCase):
         Test that an authenticated user cannot delete another user's favorite.
         """
         other_user = UserModel.objects.create_user(
-            username="anotheruser",
+            username="testuserAnother",
             email="another@example.com",
             password="anotherpass123",
+            first_name="Test",
+            last_name="Test",
+            agreed_to_terms=True,
         )
         property_instance = self.create_property()
         other_favorite_instance = UserFavoriteProperty.objects.create(

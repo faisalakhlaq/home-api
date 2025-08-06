@@ -26,6 +26,7 @@ THIRD_PARTY_APPS: List[str] = [
 BASE_PROJECT_APPS: List[str] = [
     "apps.users",
     "apps.core",
+    "apps.locations",
     "apps.properties",
     "apps.favorites",
 ]
@@ -44,11 +45,8 @@ INSTALLED_APPS = (
 
 SITE_ID = 1
 
-THIRD_PARTY_MIDDLEWARE = [
-    "corsheaders.middleware.CorsMiddleware",
-    "allauth.account.middleware.AccountMiddleware",
-]
 MIDDLEWARE = [
+    "corsheaders.middleware.CorsMiddleware",
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
@@ -56,7 +54,8 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
-] + THIRD_PARTY_MIDDLEWARE
+    "allauth.account.middleware.AccountMiddleware",
+]
 
 AUTHENTICATION_BACKENDS = [
     "django.contrib.auth.backends.ModelBackend",
@@ -126,7 +125,7 @@ REST_FRAMEWORK = {
     # 3.0 gives you the option to serialize decimals as floats.
     # if COERCE_DECIMAL_TO_STRING then the decimals are serialized as strings.
     "COERCE_DECIMAL_TO_STRING": False,
-    "NON_FIELD_ERRORS_KEY": "error",
+    "NON_FIELD_ERRORS_KEY": "detail",
     "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
     "DEFAULT_AUTHENTICATION_CLASSES": [
         "rest_framework_simplejwt.authentication.JWTAuthentication",
@@ -136,6 +135,8 @@ REST_FRAMEWORK = {
 REST_AUTH = {
     "USE_JWT": True,
     "JWT_AUTH_HTTPONLY": False,
+    "REGISTER_SERIALIZER": "apps.users.serializers.CustomRegisterSerializer",
+    "LOGIN_SERIALIZER": "apps.users.serializers.CustomLoginSerializer",
 }
 
 SIMPLE_JWT = {
@@ -148,25 +149,33 @@ SIMPLE_JWT = {
     "ALGORITHM": "HS512",
 }
 
+# django-allauth settings for signup fields
+ACCOUNT_SIGNUP_FIELDS = {
+    "email": {"required": True, "label": "Email Address*", "widget": "email"},
+    "first_name": {
+        "required": True,
+        "label": "First Name*",
+    },
+    "last_name": {
+        "required": True,
+        "label": "Last Name*",
+    },
+}
+
+# Allauth settings (CRITICAL FOR EMAIL-BASED AUTH)
+# If custom User model *doesn't* have a `username` field, therefore:
+ACCOUNT_USER_MODEL_USERNAME_FIELD = None  # We removed username from CustomUser
 ACCOUNT_EMAIL_VERIFICATION = "none"
+ACCOUNT_UNIQUE_EMAIL = True
+ACCOUNT_LOGIN_METHODS = ["email"]  # Users log in using their email address
+
+# Email Backend settings (ESSENTIAL for email verification)
+# For development, use console backend to see emails in your terminal
+EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
 
 SPECTACULAR_SETTINGS = {
     "TITLE": "Balkan Home API Documentation",
     "DESCRIPTION": "API for Balkan home project.",
     "VERSION": "1.0.0",
     "SERVE_INCLUDE_SCHEMA": False,
-}
-
-# django-allauth settings for signup fields
-ACCOUNT_SIGNUP_FIELDS = {
-    "username": {"required": True, "label": "Username", "widget": "input"},
-    "email": {"required": False, "label": "Email Address", "widget": "email"},
-    "first_name": {
-        "required": False,
-        "label": "First Name",
-    },
-    "last_name": {
-        "required": False,
-        "label": "Last Name",
-    },
 }

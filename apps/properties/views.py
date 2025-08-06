@@ -14,15 +14,13 @@ from rest_framework.status import (
     HTTP_405_METHOD_NOT_ALLOWED,
 )
 
-from apps.core.models import City, Genre, Status
-from apps.core.serializers import IdNameListSerializer
 from apps.core.views import BaseAPIViewSet
-from apps.properties.models import Property
+from apps.locations.models import City
+from apps.properties.models import Property, PropertyStatus, PropertyType
 from apps.properties.querysets import (
     property_list_queryset,
 )
 from apps.properties.serializers import (
-    PropertyDetailSerializer,
     PropertyListSerializer,
     PropertySerializer,
 )
@@ -40,20 +38,18 @@ class PropertyFilter(filters.FilterSet):  # type: ignore
     """Filtering for `Property` objects.
 
     * city: {baseurl}/api/v1/properties/properties/?city=New+York
-    * genre: {baseurl}/api/v1/properties/properties/?genre=1
-    * type: {baseurl}/api/v1/properties/properties/?type=Townhouse
-    * country: {baseurl}/api/v1/properties/properties/?country=MyCountry
+    * property_type: {baseurl}/api/v1/properties/properties/?property_type=Townhouse
+    * country: {baseurl}/api/v1/properties/properties/?country=MK
     * min_price: {baseurl}/api/v1/properties/properties/?min_price=12
     * max_price: {baseurl}/api/v1/properties/properties/?max_price=23
     * min_area: {baseurl}/api/v1/properties/properties/?min_area=1234
     * max_area: {baseurl}/api/v1/properties/properties/?max_area=1234
-    * total_rooms:
     """
 
-    city = filters.CharFilter(field_name="address__city", lookup_expr="iexact")
-    country = filters.CharFilter(field_name="address__country", lookup_expr="iexact")
-    type = CharInFilter(field_name="type__name", lookup_expr="in")
-    genre = NumberInFilter(field_name="type", lookup_expr="in")
+    city = filters.CharFilter(field_name="city", lookup_expr="iexact")
+    country = filters.CharFilter(field_name="country", lookup_expr="iexact")
+    property_type = CharInFilter(field_name="property_type", lookup_expr="in")
+    status = CharInFilter(field_name="status", lookup_expr="in")
     min_price = filters.NumberFilter(field_name="price", lookup_expr="gte")
     max_price = filters.NumberFilter(field_name="price", lookup_expr="lte")
     min_area = filters.NumberFilter(field_name="area", lookup_expr="gte")
@@ -97,26 +93,18 @@ class PropertyViewSet(BaseAPIViewSet[Property]):
         elif self.action == "get_create_property_form_data":
             return Property.objects.none()
         else:
-            return Property.objects.select_related("address").prefetch_related(
-                "property_images"
-            )
+            return Property.objects.prefetch_related("property_images")
 
     def get_serializer_class(self) -> Type[ModelSerializer[Property]]:
-        if self.action in [
-            "list",
-            "add_to_favorites",
-            "user_favorite_properties",
-        ]:
+        if self.action == "list":
             return PropertyListSerializer
-        elif self.action == "retrieve":
-            return PropertyDetailSerializer
         else:
             return PropertySerializer
 
     def destroy(self, request: Request, *args: Any, **kwargs: Any) -> Response:
         """Delete operation on the `Property` is not allowed."""
         return Response(
-            {"error": "`Property` deletion is not allowed."},
+            {"detail": "`Property` deletion is not allowed."},
             status=HTTP_405_METHOD_NOT_ALLOWED,
         )
 
@@ -130,17 +118,9 @@ class PropertyViewSet(BaseAPIViewSet[Property]):
         self, request: Request, *args: Any, **kwargs: Any
     ) -> Response:
         """Returns the data to help create a `Property`."""
-        genre_serializer = IdNameListSerializer(
-            Genre.objects.only("id", "name").order_by("name").values("id", "name"),
-            many=True,
-        )
-        status_serializer = IdNameListSerializer(
-            Status.objects.only("id", "name").order_by("name").values("id", "name"),
-            many=True,
-        )
         data = {
-            "types": genre_serializer.data,
-            "status": status_serializer.data,
+            "types": [choice for choice in PropertyType.values],
+            "status": [choice for choice in PropertyStatus.values],
             "cities": list(
                 City.objects.only("name")
                 .order_by("name")

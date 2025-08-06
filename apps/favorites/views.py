@@ -49,6 +49,7 @@ class UserFavoritePropertyViewSet(ModelViewSet[UserFavoriteProperty]):
 
     serializer_class = UserFavoritePropertySerializer
     permission_classes = [IsAuthenticated]
+    queryset = UserFavoriteProperty.objects.all()
 
     def get_queryset(self) -> QuerySet[UserFavoriteProperty]:
         """

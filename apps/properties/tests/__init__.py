@@ -1,9 +1,9 @@
-from .genre_tests import TestGenre
+from .test_setup import TestSetUp
 from .property_api_tests import TestPropertyAPI
-from .status_tests import TestStatus
+from .search_api_tests import TestSearchAPI
 
 __all__ = [
-    "TestGenre",
+    "TestSetUp",
     "TestPropertyAPI",
-    "TestStatus",
+    "TestSearchAPI",
 ]
