@@ -24,7 +24,7 @@ This project is actively under development. The backend API is functional and av
 - [Live API Swagger UI](https://faisalakhlaq.pythonanywhere.com/api/v1/schema/swagger-ui/)
 - [Live API redoc](https://faisalakhlaq.pythonanywhere.com/api/v1/schema/redoc/)
 
-A React Native mobile application is in progress, which will consume this API to provide a seamless real estate browsing experience.
+A React Native mobile application is also in progress, which will consume this API to provide a seamless real estate browsing experience.
 
 ## Getting Started (with Docker Compose)
 
