@@ -174,7 +174,7 @@ ACCOUNT_LOGIN_METHODS = ["email"]  # Users log in using their email address
 EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
 
 SPECTACULAR_SETTINGS = {
-    "TITLE": "Balkan Home API Documentation",
+    "TITLE": "Balkan Real Estate API Documentation",
     "DESCRIPTION": "API for Balkan home project.",
     "VERSION": "1.0.0",
     "SERVE_INCLUDE_SCHEMA": False,
