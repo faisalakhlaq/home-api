@@ -6,6 +6,7 @@ from django.db.models import QuerySet
 
 from rest_framework.exceptions import ValidationError
 from rest_framework.decorators import action
+from rest_framework.parsers import FormParser, MultiPartParser
 from rest_framework.permissions import IsAuthenticated, IsAuthenticatedOrReadOnly
 from rest_framework.response import Response
 from rest_framework.request import Request
@@ -33,6 +34,7 @@ from apps.properties.querysets import (
 from apps.properties.serializers import (
     PropertyListSerializer,
     PropertySerializer,
+    WritablePropertySerializer,
 )
 
 
@@ -96,6 +98,7 @@ class PropertyViewSet(BaseAPIViewSet[Property]):
 
     permission_classes = [IsAuthenticatedOrReadOnly]
     filterset_class = PropertyFilter
+    parser_classes = [MultiPartParser, FormParser]
     ordering_fields = [
         "id",
         "created_at",
@@ -158,6 +161,8 @@ class PropertyViewSet(BaseAPIViewSet[Property]):
     def get_serializer_class(self) -> Type[ModelSerializer[Property]]:
         if self.action == "list":
             return PropertyListSerializer
+        elif self.action == "create":
+            return WritablePropertySerializer
         else:
             return PropertySerializer
 
