@@ -1,6 +1,7 @@
 from .property import (
     PropertyListSerializer,
     PropertySerializer,
+    WritablePropertySerializer,
 )
 from .property_image import (
     PropertyImageSerializer,
@@ -15,4 +16,5 @@ __all__ = [
     "PropertyPrimaryImageSerialzier",
     "PropertySearchQuerySerializer",
     "PropertySearchResponseSerializer",
+    "WritablePropertySerializer",
 ]
