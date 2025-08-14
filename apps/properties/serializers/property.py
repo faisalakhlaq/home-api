@@ -75,7 +75,6 @@ class WritablePropertySerializer(ModelSerializer[Property]):
             request_files = request.FILES
 
             # Use a regex to find all image-related title fields
-            # This list comprehension is now safe because we've checked that request_data is not None
             image_keys = [
                 k
                 for k in request_data.keys()
@@ -86,7 +85,7 @@ class WritablePropertySerializer(ModelSerializer[Property]):
             indices = []
             for k in image_keys:
                 match = re.search(r"\[(\d+)\]", k)
-                if match:  # The mypy fix: check if a match was found
+                if match:
                     indices.append(match.group(1))
 
             unique_indices = sorted(list(set(indices)))

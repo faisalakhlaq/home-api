@@ -10,6 +10,7 @@ from apps.properties.querysets import property_list_queryset
 from apps.properties.serializers import (
     PropertyListSerializer,
     PropertySerializer,
+    WritablePropertySerializer,
 )
 from apps.properties.views import PropertyViewSet
 
@@ -55,7 +56,7 @@ class TestPropertyAPI(TestSetUp):
         view = PropertyViewSet()
         view.action = "create"
         serializer_class = view.get_serializer_class()
-        self.assertEqual(serializer_class, PropertySerializer)
+        self.assertEqual(serializer_class, WritablePropertySerializer)
 
     def test_list_queryset_country_code_validation(self):
         view = PropertyViewSet()
@@ -96,7 +97,7 @@ class TestPropertyAPI(TestSetUp):
         self.client.force_authenticate(user=self.user)
 
         payload = {**self.property_payload}
-        res = self.client.post(self.list_url, data=payload, format="json")
+        res = self.client.post(self.list_url, data=payload)
         response_data = res.json()
         self.assertEqual(res.status_code, 201)
         self.assertEqual(response_data["owner"], self.user.id)
@@ -129,7 +130,7 @@ class TestPropertyAPI(TestSetUp):
     def test_create_property_invalid_data(self):
         self.client.force_authenticate(user=self.user)
         invalid_payload = {**self.property_payload, "price": ""}
-        response = self.client.post(self.list_url, data=invalid_payload, format="json")
+        response = self.client.post(self.list_url, data=invalid_payload)
         self.assertEqual(response.status_code, 400)
 
     def test_retrieve_property(self) -> None:
