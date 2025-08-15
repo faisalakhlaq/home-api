@@ -1,15 +1,17 @@
 from typing import List
 
 from django.db.models import (
-    BooleanField,
     Case,
+    Exists,
     IntegerField,
+    OuterRef,
     Prefetch,
     QuerySet,
     When,
 )
 
 from apps.properties.models import Property, PropertyImage
+from apps.favorites.models import UserFavoriteProperty
 
 
 def property_list_queryset(
@@ -100,10 +102,10 @@ def property_list_queryset(
         # Annotate each property with a boolean indicating whether it's a favorite
         # of the user_id
         list_qs = list_qs.annotate(
-            is_favorite=Case(
-                When(favorite_user__isnull=False, then=True),
-                default=False,
-                output_field=BooleanField(),
+            is_favorite=Exists(
+                UserFavoriteProperty.objects.filter(
+                    user_id=user_id, property_id=OuterRef("pk")
+                )
             )
         )
 
