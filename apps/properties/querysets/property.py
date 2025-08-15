@@ -51,7 +51,9 @@ def property_list_queryset(
     # Use Prefetch with a custom queryset to get only the one image we need.
     # The Case statement orders images, prioritizing is_primary=True (value 0).
     # `image` is included to ensure the image path is fetched.
-    image_queryset = PropertyImage.objects.only("image").order_by(
+    image_queryset = PropertyImage.objects.only(
+        "id", "image", "is_primary", "property_id"
+    ).order_by(
         Case(
             When(is_primary=True, then=0),
             default=1,
@@ -94,15 +96,15 @@ def property_list_queryset(
             status = [status]
         list_qs = list_qs.filter(status__in=status)
 
-    if not user_id:
-        return list_qs
-
-    # Annotate each property with a boolean indicating whether it's a favorite
-    # of the user_id
-    return list_qs.annotate(
-        is_favorite=Case(
-            When(favorite_user__isnull=False, then=True),
-            default=False,
-            output_field=BooleanField(),
+    if user_id:
+        # Annotate each property with a boolean indicating whether it's a favorite
+        # of the user_id
+        list_qs = list_qs.annotate(
+            is_favorite=Case(
+                When(favorite_user__isnull=False, then=True),
+                default=False,
+                output_field=BooleanField(),
+            )
         )
-    )
+
+    return list_qs
