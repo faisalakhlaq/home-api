@@ -1,4 +1,6 @@
 from typing import Any
+import uuid
+from pathlib import Path
 
 from django.core.validators import FileExtensionValidator
 from django.db import models
@@ -14,9 +16,8 @@ def property_image_path(instance: Any, filename: str) -> str:
     Path for the image is constructed by creating property folder within the
     images folder. The property folder name is equal to DB ID of property object.
     """
-    return "media/property/images/property_{0}/{1}".format(
-        instance.property.id, filename
-    )
+    ext = Path(filename).suffix.lower()
+    return f"property/images/{uuid.uuid4()}{ext}"
 
 
 class PropertyImage(TimeTracking):

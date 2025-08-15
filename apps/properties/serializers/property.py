@@ -95,8 +95,10 @@ class WritablePropertySerializer(ModelSerializer[Property]):
                 image_title_key = f"property_images[{index}].title"
                 image_is_primary_key = f"property_images[{index}].is_primary"
                 image_file_key = f"property_images[{index}].image"
+                image_desc_key = f"property_images[{index}].description"
 
                 title = request_data.get(image_title_key, "")
+                description = request_data.get(image_desc_key, "")
                 is_primary_str = request_data.get(image_is_primary_key, "false")
                 is_primary = is_primary_str.lower() == "true"
                 image_file = request_files.get(image_file_key)
@@ -107,6 +109,7 @@ class WritablePropertySerializer(ModelSerializer[Property]):
                         title=title,
                         is_primary=is_primary,
                         image=image_file,
+                        description=description,
                     )
 
         return property_instance
