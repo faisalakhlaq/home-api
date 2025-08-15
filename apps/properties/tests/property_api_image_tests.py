@@ -1,8 +1,11 @@
 import tempfile
 import os
+import shutil
+from urllib.parse import urlparse
+
 from PIL import Image
 
-from django.conf import settings
+
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import override_settings
 from django.urls import reverse
@@ -48,6 +51,23 @@ class TestPropertyWithImagesAPI(TestSetUp):
         os.unlink(temp_file.name)
         return uploaded_file
 
+    def create_property_with_image(self, **kwargs) -> Property:
+        test_image = self.create_test_image()
+        property_data = {
+            **self.property_payload,
+            "property_images[0].is_primary": "true",
+            "property_images[0].image": test_image,
+        }
+        property_data.update(kwargs)
+        res = self.client.post(
+            self.list_url,
+            data=property_data,
+            format="multipart",
+        )
+        self.assertEqual(res.status_code, 201)
+
+        return Property.objects.get(id=res.data["id"])
+
     def test_create_property_with_single_image(self) -> None:
         """Test property creation with a single image"""
         # Create test image
@@ -58,7 +78,6 @@ class TestPropertyWithImagesAPI(TestSetUp):
             **self.property_payload,
             "description": "A lovely apartment in the city center",
             "price": 250000,
-            # Image data in the format your serializer expects
             "property_images[0].title": "Living Room",
             "property_images[0].description": "Spacious living room with natural light",
             "property_images[0].is_primary": "true",
@@ -76,11 +95,13 @@ class TestPropertyWithImagesAPI(TestSetUp):
         self.assertEqual(response.status_code, 201)
 
         # Check property was created
-        property_instance = Property.objects.get(id=response.data["id"])
-        self.assertEqual(property_instance.owner, self.user)
+        url = reverse(self.detail_url, kwargs={"pk": response.data["id"]})
+        res = self.client.get(url)
+        self.assertEqual(res.data["owner"], self.user.id)
+        self.assertEqual(len(res.data["property_images"]), 1)
 
         # Check image was created
-        property_images = PropertyImage.objects.filter(property=property_instance)
+        property_images = PropertyImage.objects.filter(property_id=response.data["id"])
         self.assertEqual(property_images.count(), 1)
 
         image = property_images.first()
@@ -90,7 +111,7 @@ class TestPropertyWithImagesAPI(TestSetUp):
         self.assertTrue(image.image)
 
         # Clean up
-        property_instance.delete()
+        Property.objects.get(id=response.data["id"]).delete()
 
     def test_create_property_with_multiple_images(self) -> None:
         """Test property creation with multiple images"""
@@ -270,17 +291,52 @@ class TestPropertyWithImagesAPI(TestSetUp):
         # Clean up
         property_instance.delete()
 
+    def test_list_api_returns_images(self) -> None:
+        "Test if the property list returns the primary images with a complete URL."
+        self.create_property_with_image()
+        self.create_property_with_image()
+        self.create_property_with_image()
+
+        res = self.client.get(f"{self.list_url}?country_code=MK")
+        data = res.data
+
+        self.assertEqual(res.status_code, 200)
+        self.assertEqual(len(data), 3)
+
+        # Loop through each item in the data to test its primary_image field.
+        for property_item in data:
+            # 1. Existence Check
+            self.assertIn("primary_image", property_item)
+
+            # 2. Not-None Check
+            primary_image_url = property_item["primary_image"]
+            self.assertIsNotNone(primary_image_url)
+
+            # 3. Data Type Check
+            self.assertIsInstance(primary_image_url, str)
+
+            # 4. Absolute URL Format Check (the crucial part)
+            parsed_url = urlparse(primary_image_url)
+            self.assertIn(parsed_url.scheme, ["http", "https"])
+            self.assertIsNotNone(parsed_url.netloc)
+            self.assertNotEqual(parsed_url.netloc, "")
+
     def tearDown(self) -> None:
-        # Clean up the temporary media directory
-        import shutil
-
-        if os.path.exists(self.test_media_root):
-            shutil.rmtree(self.test_media_root)
-
-        # Restore original media root
-        settings.MEDIA_ROOT = self.original_media_root
         super().tearDown()
 
     @classmethod
     def tearDownClass(cls):
+        # Get the temporary media root from override_settings
+        if (
+            hasattr(cls, "_overridden_settings")
+            and "MEDIA_ROOT" in cls._overridden_settings
+        ):
+            temp_media_root = cls._overridden_settings["MEDIA_ROOT"]
+            # Only delete if it's actually a temporary directory and not the real media root
+            if (
+                temp_media_root
+                and temp_media_root.startswith(tempfile.gettempdir())
+                and os.path.exists(temp_media_root)
+            ):
+                shutil.rmtree(temp_media_root)
         super().tearDownClass()

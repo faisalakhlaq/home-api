@@ -3,13 +3,16 @@ from typing import Any, Dict
 
 from django.db import transaction
 
-from rest_framework.serializers import BooleanField, ModelSerializer
+from rest_framework.serializers import (
+    BooleanField,
+    ModelSerializer,
+    SerializerMethodField,
+)
 
 from apps.properties.models import Property, PropertyImage
 
 from .property_image import (
     PropertyImageSerializer,
-    PropertyPrimaryImageSerialzier,
 )
 
 
@@ -22,7 +25,7 @@ class PropertySerializer(ModelSerializer[Property]):
 
 
 class PropertyListSerializer(ModelSerializer[Property]):
-    image = PropertyPrimaryImageSerialzier(read_only=True)
+    primary_image = SerializerMethodField()
     favorite = BooleanField(source="is_favorite", default=False, read_only=True)
 
     class Meta:
@@ -41,9 +44,17 @@ class PropertyListSerializer(ModelSerializer[Property]):
             "street_number",
             "postal_code",
             "city",
-            "image",
+            "primary_image",
             "favorite",
         ]
+
+    def get_primary_image(self, obj: Property) -> Any | None:
+        prefetched_images = getattr(obj, "prefetched_images", [])
+        if prefetched_images:
+            request = self.context.get("request")
+            if request and prefetched_images[0].image:
+                return request.build_absolute_uri(prefetched_images[0].image.url)
+        return None
 
 
 class WritablePropertySerializer(ModelSerializer[Property]):
@@ -78,7 +89,7 @@ class WritablePropertySerializer(ModelSerializer[Property]):
             image_keys = [
                 k
                 for k in request_data.keys()
-                if re.match(r"property_images\[\d+\]\.title", k)
+                if re.match(r"property_images\[\d+\]\.image", k)
             ]
 
             # Get the unique indices from the keys (e.g., [0], [1], etc.)

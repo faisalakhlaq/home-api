@@ -1,8 +1,14 @@
 from typing import List
 
-from django.db.models import BooleanField, Case, Prefetch, QuerySet, When
+from django.db.models import (
+    BooleanField,
+    Case,
+    IntegerField,
+    Prefetch,
+    QuerySet,
+    When,
+)
 
-from apps.favorites.models import UserFavoriteProperty
 from apps.properties.models import Property, PropertyImage
 
 
@@ -16,6 +22,9 @@ def property_list_queryset(
     """
     Constructs and returns a queryset for listing `Property` objects with
     optional filters and annotations.
+
+    Queryset prefetches a single, primary image for each property if one
+    exists, or a fallback image otherwise.
 
     Parameters
     ----------
@@ -39,6 +48,18 @@ def property_list_queryset(
         - Minimal selected fields for list views
         - Optional user-specific favorite annotation
     """
+    # Use Prefetch with a custom queryset to get only the one image we need.
+    # The Case statement orders images, prioritizing is_primary=True (value 0).
+    # `image` is included to ensure the image path is fetched.
+    image_queryset = PropertyImage.objects.only("image").order_by(
+        Case(
+            When(is_primary=True, then=0),
+            default=1,
+            output_field=IntegerField(),
+        ),
+        "id",
+    )
+
     lookup = "__".join([filter_key, "in"])
     base_query = (
         Property.objects.filter(**{lookup: filter})
@@ -47,9 +68,8 @@ def property_list_queryset(
     )
     list_qs = base_query.prefetch_related(
         Prefetch(
-            "property_images",
-            queryset=PropertyImage.objects.only("image"),
-        ),
+            "property_images", queryset=image_queryset, to_attr="prefetched_images"
+        )
     ).only(
         "id",
         "property_type",
@@ -57,8 +77,13 @@ def property_list_queryset(
         "created_at",
         "price",
         "price_currency",
+        "total_rooms",
+        "area",
+        "energy_class",
+        "street_name",
+        "street_number",
+        "postal_code",
         "city",
-        "country_code",
     )
 
     if country_code:
@@ -72,13 +97,6 @@ def property_list_queryset(
     if not user_id:
         return list_qs
 
-    list_qs = list_qs.prefetch_related(
-        Prefetch(
-            "favorite_user",
-            queryset=UserFavoriteProperty.objects.filter(user=user_id),
-            # to_attr="user_favorites",
-        )
-    )
     # Annotate each property with a boolean indicating whether it's a favorite
     # of the user_id
     return list_qs.annotate(
