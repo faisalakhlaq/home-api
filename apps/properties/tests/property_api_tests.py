@@ -22,7 +22,6 @@ class TestPropertyAPI(TestSetUp):
     def setUpTestData(cls):
         super().setUpTestData()
         cls.list_url: str = reverse("apps.properties:properties-list")
-        cls.favorite_list_url: str = reverse("apps.favorites:favorites-list")
         cls.detail_url: str = "apps.properties:properties-detail"
         cls.property_form_url: str = reverse(
             "apps.properties:properties-get-create-property-form-data"
