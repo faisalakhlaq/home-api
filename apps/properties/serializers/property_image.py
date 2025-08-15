@@ -7,9 +7,3 @@ class PropertyImageSerializer(ModelSerializer[PropertyImage]):
     class Meta:
         model = PropertyImage
         fields = "__all__"
-
-
-class PropertyPrimaryImageSerialzier(ModelSerializer[PropertyImage]):
-    class Meta:
-        model = PropertyImage
-        fields = ("image",)
