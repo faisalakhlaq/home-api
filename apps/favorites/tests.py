@@ -67,7 +67,6 @@ class TestUserFavoritePropertiesAPI(TestCase):
             ).exists()
         )
         self.assertEqual(UserFavoriteProperty.objects.count(), 1)
-        self.assertEqual(res.json()["property"]["id"], property_instance.id)
         self.assertEqual(res.json()["user"], self.user.id)
 
     def test_create_duplicate_favorite(self) -> None:
@@ -79,10 +78,11 @@ class TestUserFavoritePropertiesAPI(TestCase):
         res_first = self.client.post(self.list_url, data=payload, format="json")
         self.assertEqual(res_first.status_code, 201)
 
-        # Second creation (should fail with 409 Conflict)
         res_second = self.client.post(self.list_url, data=payload, format="json")
-        self.assertEqual(res_second.status_code, 409)
-        self.assertIn("already in your favorites", res_second.json()["detail"])
+        self.assertEqual(res_second.status_code, 400)
+        data = res_second.json()
+        self.assertIn("property_id", data)
+        self.assertIn("already in your favorites", data["property_id"][0])
         # Ensure only one favorite entry exists
         self.assertEqual(UserFavoriteProperty.objects.count(), 1)
 

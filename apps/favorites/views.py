@@ -1,10 +1,16 @@
 # Standard library imports
 import logging
-from typing import Any, TYPE_CHECKING, cast
+from typing import Any, TYPE_CHECKING, Type, cast
 
-from django.db.models.query import QuerySet
+from django.db.models import (
+    Case,
+    IntegerField,
+    Prefetch,
+    QuerySet,
+    When,
+)
 from django.contrib.auth import get_user_model
-from django.utils.translation import gettext_lazy as _  # For i18n
+from django.utils.translation import gettext_lazy as _
 
 from drf_spectacular.utils import OpenApiExample, OpenApiResponse, extend_schema
 
@@ -12,7 +18,7 @@ from rest_framework.exceptions import PermissionDenied
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.request import Request
 from rest_framework.response import Response
-from rest_framework.serializers import BaseSerializer
+from rest_framework.serializers import ModelSerializer
 from rest_framework.viewsets import ModelViewSet
 from rest_framework.status import (
     HTTP_201_CREATED,
@@ -22,11 +28,13 @@ from rest_framework.status import (
     HTTP_409_CONFLICT,
 )
 
-from apps.properties.models import Property
+from apps.properties.models import PropertyImage
 from apps.favorites.models import UserFavoriteProperty
 
-from .serializers import UserFavoritePropertySerializer
-from .exceptions import DuplicateFavoriteError
+from .serializers import (
+    UserFavoritePropertyListSerializer,
+    WritableUserFavoritePropertySerializer,
+)
 
 logger = logging.getLogger(__name__)
 User = get_user_model()
@@ -47,7 +55,7 @@ class UserFavoritePropertyViewSet(ModelViewSet[UserFavoriteProperty]):
     Provides actions to list, add, and remove properties from a user's favorites.
     """
 
-    serializer_class = UserFavoritePropertySerializer
+    serializer_class = UserFavoritePropertyListSerializer
     permission_classes = [IsAuthenticated]
     queryset = UserFavoriteProperty.objects.all()
 
@@ -56,21 +64,46 @@ class UserFavoritePropertyViewSet(ModelViewSet[UserFavoriteProperty]):
         Returns the queryset of favorite properties for the authenticated user.
         """
         user = cast(CustomUserType, self.request.user)
-        return (
+        favorite_qs = (
             UserFavoriteProperty.objects.filter(user=user)
             .select_related("property")
             .order_by("created_at")
         )
+
+        if self.action in ["list", "retrieve"]:
+            image_queryset = PropertyImage.objects.order_by(
+                Case(
+                    When(is_primary=True, then=0),
+                    default=1,
+                    output_field=IntegerField(),
+                ),
+                "id",
+            )
+            favorite_qs = favorite_qs.prefetch_related(
+                Prefetch(
+                    "property__property_images",
+                    queryset=image_queryset,
+                    to_attr="prefetched_images",
+                )
+            )
+
+        return favorite_qs
+
+    def get_serializer_class(self) -> Type[ModelSerializer[UserFavoriteProperty]]:
+        if self.action in ["list", "retrieve"]:
+            return UserFavoritePropertyListSerializer
+        else:
+            return WritableUserFavoritePropertySerializer
 
     @extend_schema(
         summary=_("Add a property to user's favorites"),
         description=_(
             "Adds a specified property to the authenticated user's " "favorite list."
         ),
-        request=UserFavoritePropertySerializer,
+        request=WritableUserFavoritePropertySerializer,
         responses={
             HTTP_201_CREATED: OpenApiResponse(
-                response=UserFavoritePropertySerializer,
+                response=WritableUserFavoritePropertySerializer,
                 description=_("Property successfully added to favorites."),
                 examples=[
                     OpenApiExample(
@@ -78,12 +111,8 @@ class UserFavoritePropertyViewSet(ModelViewSet[UserFavoriteProperty]):
                         value={
                             "id": 1,
                             "user": 1,
-                            "property": {
-                                "id": 101,
-                                "price": "3243241",
-                                # ... other property fields ...
-                            },
                             "created_at": "2025-01-01T12:00:00Z",
+                            "updated_at": "2025-01-01T12:00:00Z",
                         },
                         response_only=True,
                     )
@@ -120,34 +149,6 @@ class UserFavoritePropertyViewSet(ModelViewSet[UserFavoriteProperty]):
         Handles POST requests to create a new favorite property entry.
         """
         return super().create(request, *args, **kwargs)
-
-    def perform_create(self, serializer: BaseSerializer[UserFavoriteProperty]) -> None:
-        """
-        Performs the creation of a new UserFavoriteProperty instance.
-
-        Checks for duplicates before saving.
-        """
-        favourite_serializer = cast(UserFavoritePropertySerializer, serializer)
-        property_instance: Property = favourite_serializer.validated_data["property"]
-        user: CustomUserType = cast(CustomUserType, self.request.user)
-
-        if UserFavoriteProperty.objects.filter(
-            user=user, property=property_instance
-        ).exists():
-            logger.info(
-                f"User {user.username} tried to favorite property "
-                f"{property_instance.id} which is already favorited."
-            )
-            raise DuplicateFavoriteError(
-                detail=_("This property is already in your favorites.")
-            )
-
-        # Only save if it's NOT a duplicate
-        favourite_serializer.save(user=user)
-        logger.info(
-            f"User {user.username} successfully favorited property "
-            f"{property_instance.id}."
-        )
 
     @extend_schema(
         summary=_("List user's favorite properties"),
