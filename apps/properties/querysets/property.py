@@ -2,11 +2,11 @@ from typing import List
 
 from django.db.models import (
     Case,
-    Exists,
     IntegerField,
     OuterRef,
     Prefetch,
     QuerySet,
+    Subquery,
     When,
 )
 
@@ -96,14 +96,11 @@ def property_list_queryset(
         list_qs = list_qs.filter(status__in=status)
 
     if user_id:
-        # Annotate each property with a boolean indicating whether it's a favorite
-        # of the user_id
-        list_qs = list_qs.annotate(
-            is_favorite=Exists(
-                UserFavoriteProperty.objects.filter(
-                    user_id=user_id, property_id=OuterRef("pk")
-                )
-            )
-        )
+        favorite_subquery = UserFavoriteProperty.objects.filter(
+            user_id=user_id, property_id=OuterRef("pk")
+        ).values("id")[:1]
+        # Annotate each property with a favorite_id indicating whether it's a
+        # favorite of this user
+        list_qs = list_qs.annotate(favorite_id=Subquery(favorite_subquery))
 
     return list_qs

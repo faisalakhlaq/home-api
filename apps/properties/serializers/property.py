@@ -2,9 +2,10 @@ import re
 from typing import Any, Dict
 
 from django.db import transaction
+from django.utils.translation import gettext_lazy as _
 
 from rest_framework.serializers import (
-    BooleanField,
+    IntegerField,
     ModelSerializer,
     SerializerMethodField,
 )
@@ -26,7 +27,14 @@ class PropertySerializer(ModelSerializer[Property]):
 
 class PropertyListSerializer(ModelSerializer[Property]):
     primary_image = SerializerMethodField()
-    favorite = BooleanField(source="is_favorite", default=False, read_only=True)
+    favorite_id = IntegerField(
+        read_only=True,
+        allow_null=True,
+        help_text=_(
+            "ID of the favorite entry for the authenticated user. "
+            "Null if not favorited. Use this ID to delete the favorite.",
+        ),
+    )
 
     class Meta:
         model = Property
@@ -44,7 +52,7 @@ class PropertyListSerializer(ModelSerializer[Property]):
             "postal_code",
             "city",
             "primary_image",
-            "favorite",
+            "favorite_id",
         ]
         exclude_fields = ["description"]
 
