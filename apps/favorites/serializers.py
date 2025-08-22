@@ -52,7 +52,6 @@ class WritableUserFavoritePropertySerializer(ModelSerializer[UserFavoritePropert
 
 
 class UserFavoritePropertyListSerializer(ModelSerializer[UserFavoriteProperty]):
-    # For GET requests (listing favorites), we want to show property details
     property = PropertyListSerializer(read_only=True)
 
     class Meta:
