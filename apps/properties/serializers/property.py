@@ -33,7 +33,6 @@ class PropertyListSerializer(ModelSerializer[Property]):
         fields = [
             "id",
             "property_type",
-            "description",
             "created_at",
             "price",
             "price_currency",
@@ -47,6 +46,7 @@ class PropertyListSerializer(ModelSerializer[Property]):
             "primary_image",
             "favorite",
         ]
+        exclude_fields = ["description"]
 
     def get_primary_image(self, obj: Property) -> Any | None:
         prefetched_images = getattr(obj, "prefetched_images", [])

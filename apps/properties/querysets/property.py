@@ -75,7 +75,6 @@ def property_list_queryset(
     ).only(
         "id",
         "property_type",
-        "description",
         "created_at",
         "price",
         "price_currency",
