@@ -53,9 +53,7 @@ def property_list_queryset(
     # Use Prefetch with a custom queryset to get only the one image we need.
     # The Case statement orders images, prioritizing is_primary=True (value 0).
     # `image` is included to ensure the image path is fetched.
-    image_queryset = PropertyImage.objects.only(
-        "id", "image", "is_primary", "property_id"
-    ).order_by(
+    image_queryset = PropertyImage.objects.order_by(
         Case(
             When(is_primary=True, then=0),
             default=1,

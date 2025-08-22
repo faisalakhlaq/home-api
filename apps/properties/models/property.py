@@ -129,6 +129,7 @@ class Property(TimeTracking):
         validators=[validate_positive],
         help_text=_("The asking price of the property."),
     )
+    # ISO 4217 currency code
     price_currency = models.CharField(
         max_length=5,
         help_text=_(
