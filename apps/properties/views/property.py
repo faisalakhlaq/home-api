@@ -71,7 +71,7 @@ class PropertyFilter(CustomFilterSet):
 
     class Meta:
         model = Property
-        fields = ("total_rooms",)
+        fields = ("total_rooms", "owner")
 
     def __init__(
         self,
