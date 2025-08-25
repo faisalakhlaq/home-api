@@ -8,6 +8,7 @@ from rest_framework.serializers import (
     BooleanField,
     CharField,
     EmailField,
+    IntegerField,
     ModelSerializer,
     ValidationError,
 )
@@ -46,9 +47,12 @@ class CustomLoginSerializer(LoginSerializer):
 
 
 class AuthUserDetailsSerializer(ModelSerializer[User]):
+    id = IntegerField(source="pk", read_only=True)
+
     class Meta:
         model = User
         fields = (
+            "id",
             "username",
             "email",
             "first_name",
@@ -63,6 +67,7 @@ class AuthUserDetailsSerializer(ModelSerializer[User]):
             "profile_photo",
         )
         read_only_fields = (
+            "id",
             "email",
             "username",
             "is_business_user",
