@@ -149,18 +149,19 @@ class PropertyViewSet(BaseAPIViewSet[Property]):
                 user_id = self.request.user.id
 
             return property_list_queryset(
-                user_id=user_id,
+                favorites_user_id=user_id,
                 country_code=country_code,
                 status=status or PropertyStatus.ACTIVE,
             )
         elif self.action == "get_create_property_form_data":
             return Property.objects.none()
         elif self.action == "my_properties":
-            return property_list_queryset(
-                user_id=self.request.user.id,
+            queryset = property_list_queryset(
                 country_code=country_code,
                 status=self.request.GET.getlist("status") or [PropertyStatus.ACTIVE],
             )
+            queryset = queryset.filter(owner_id=self.request.user.id)
+            return queryset
         else:
             return Property.objects.prefetch_related("property_images")
 

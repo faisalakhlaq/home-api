@@ -19,7 +19,7 @@ def property_list_queryset(
     filter_key: str = "id",
     country_code: str | None = None,
     status: str | List[str] | None = None,
-    user_id: int | None = None,
+    favorites_user_id: int | None = None,
 ) -> QuerySet[Property]:
     """
     Constructs and returns a queryset for listing `Property` objects with
@@ -38,7 +38,7 @@ def property_list_queryset(
         Filters the queryset by this country code. Assumed to be upper-cased ISO2.
     status : str or list[str], optional
         Filters the queryset by one or more status values (e.g., 'ACTIVE', 'SOLD').
-    user_id : int, optional
+    favorites_user_id : int, optional
         If provided, annotates each property with an `is_favorite` boolean indicating
         if the property is marked as a favorite by this user.
 
@@ -95,9 +95,9 @@ def property_list_queryset(
             status = [status]
         list_qs = list_qs.filter(status__in=status)
 
-    if user_id:
+    if favorites_user_id:
         favorite_subquery = UserFavoriteProperty.objects.filter(
-            user_id=user_id, property_id=OuterRef("pk")
+            user_id=favorites_user_id, property_id=OuterRef("pk")
         ).values("id")[:1]
         # Annotate each property with a favorite_id indicating whether it's a
         # favorite of this user
