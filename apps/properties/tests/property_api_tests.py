@@ -337,12 +337,19 @@ class TestPropertyAPI(TestSetUp):
         self.assertEqual(res.data["count"], sold_properties_count)
 
     def test_retrieve_my_property(self):
+        """Get my properties list.
+
+        Get the list without providing any country code and all the properties
+        from different countries shall be sent back.
+        """
         self.client.force_authenticate(user=self.user)
 
         payload = {**self.property_payload}
         res = self.client.post(self.list_url, data=payload)
         self.assertEqual(res.status_code, 201)
-        res = self.client.post(self.list_url, data=payload)
+        second = dict(payload)
+        second["country_code"] = "DK"
+        res = self.client.post(self.list_url, data=second)
         self.assertEqual(res.status_code, 201)
 
         res = self.client.get(self.my_properties_url)
