@@ -90,7 +90,7 @@ class TestPropertyAPI(TestSetUp):
         view.request = request_auth  # Update the view's request
         queryset = view.get_queryset()
         expected_queryset = property_list_queryset(
-            user_id=self.user.id, country_code="US"
+            favorites_user_id=self.user.id, country_code="US"
         )
         self.assertQuerySetEqual(queryset, expected_queryset, transform=lambda x: x)
 
@@ -342,6 +342,9 @@ class TestPropertyAPI(TestSetUp):
         Get the list without providing any country code and all the properties
         from different countries shall be sent back.
         """
+        for _ in range(10):
+            self.create_property()
+
         self.client.force_authenticate(user=self.user)
 
         payload = {**self.property_payload}
