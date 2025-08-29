@@ -133,8 +133,8 @@ class PropertyViewSet(BaseAPIViewSet[Property]):
         if getattr(self, "swagger_fake_view", False):
             return Property.objects.none()
 
+        country_code = self.request.GET.get("country_code")
         if self.action in ["list", "count"]:
-            country_code = self.request.GET.get("country_code")
             if not country_code:
                 raise ValidationError(
                     {
@@ -155,6 +155,12 @@ class PropertyViewSet(BaseAPIViewSet[Property]):
             )
         elif self.action == "get_create_property_form_data":
             return Property.objects.none()
+        elif self.action == "my_properties":
+            return property_list_queryset(
+                user_id=self.request.user.id,
+                country_code=country_code,
+                status=self.request.GET.getlist("status") or [PropertyStatus.ACTIVE],
+            )
         else:
             return Property.objects.prefetch_related("property_images")
 
@@ -268,3 +274,13 @@ class PropertyViewSet(BaseAPIViewSet[Property]):
         filtered_queryset = self.filter_queryset(self.get_queryset())
         count = filtered_queryset.count()
         return Response(data={"count": count}, status=HTTP_200_OK)
+
+    @action(
+        detail=False,
+        methods=["get"],
+        url_name="my-properties",
+        permission_classes=[IsAuthenticated],
+    )
+    def my_properties(self, request: Request, *args: Any, **kwargs: Any) -> Response:
+        """Get current user's properties"""
+        return self.list(request)
