@@ -1,7 +1,7 @@
 import os
 from datetime import timedelta
 from pathlib import Path
-from typing import List
+from typing import Any, Dict, List, TypedDict
 
 from django.core.management.utils import get_random_secret_key
 
@@ -170,4 +170,63 @@ SPECTACULAR_SETTINGS = {
     "DESCRIPTION": "API for Balkan home project.",
     "VERSION": "1.0.0",
     "SERVE_INCLUDE_SCHEMA": False,
+}
+
+###########
+# LOGGING #
+###########
+
+
+class LoggerConfig(TypedDict, total=False):
+    handlers: List[str]
+    level: str
+    propagate: bool
+
+
+class LoggingConfig(TypedDict, total=False):
+    version: int
+    disable_existing_loggers: bool
+    formatters: Dict[str, Dict[str, Any]]
+    handlers: Dict[str, Dict[str, Any]]
+    loggers: Dict[str, LoggerConfig]
+
+
+BASE_LOGGING: LoggingConfig = {
+    "version": 1,
+    "disable_existing_loggers": False,
+    "formatters": {
+        "verbose": {
+            "format": "{levelname} {asctime} {module} {message}",
+            "style": "{",
+        },
+        "simple": {
+            "format": "{levelname} {message}",
+            "style": "{",
+        },
+    },
+    "handlers": {
+        "console": {
+            "level": "DEBUG",
+            "class": "logging.StreamHandler",
+            "formatter": "simple",
+        },
+        "file": {
+            "level": "INFO",
+            "class": "logging.FileHandler",
+            "filename": os.path.join(BASE_DIR, "logs", "django.log"),
+            "formatter": "verbose",
+        },
+    },
+    "loggers": {
+        "django": {
+            "handlers": ["console"],
+            "level": "INFO",
+            "propagate": True,
+        },
+        "properties": {
+            "handlers": ["console"],
+            "level": "DEBUG",
+            "propagate": False,
+        },
+    },
 }
