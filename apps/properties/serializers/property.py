@@ -19,6 +19,14 @@ from .property_image import (
 
 class PropertySerializer(ModelSerializer[Property]):
     property_images = PropertyImageSerializer(many=True, required=False)
+    favorite_id = IntegerField(
+        read_only=True,
+        allow_null=True,
+        help_text=_(
+            "ID of the favorite entry for the authenticated user. "
+            "Null if not favorited. Use this ID to delete the favorite.",
+        ),
+    )
 
     class Meta:
         model = Property

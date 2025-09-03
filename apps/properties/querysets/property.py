@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Optional
 
 from django.db.models import (
     Case,
@@ -7,6 +7,7 @@ from django.db.models import (
     Prefetch,
     QuerySet,
     Subquery,
+    Value,
     When,
 )
 
@@ -39,7 +40,7 @@ def property_list_queryset(
     status : str or list[str], optional
         Filters the queryset by one or more status values (e.g., 'ACTIVE', 'SOLD').
     favorites_user_id : int, optional
-        If provided, annotates each property with an `is_favorite` boolean indicating
+        If provided, annotates each property with an `favorite_id` boolean indicating
         if the property is marked as a favorite by this user.
 
     Returns
@@ -102,5 +103,42 @@ def property_list_queryset(
         # Annotate each property with a favorite_id indicating whether it's a
         # favorite of this user
         list_qs = list_qs.annotate(favorite_id=Subquery(favorite_subquery))
+    else:
+        list_qs = list_qs.annotate(
+            favorite_id=Value(None, output_field=IntegerField(null=True))
+        )
 
     return list_qs
+
+
+def property_detail_queryset(
+    id: Optional[int] = None, favorites_user_id: Optional[int] = None
+) -> QuerySet[Property]:
+    """Property detail queryset with annotated favorite_id and prefetched images.
+
+    Args:
+        id (int, optional): ID of the `Property` to be filtered.
+        favorites_user_id (int, optional):
+            If provided, annotates the property with `favorite_id`
+            from UserFavoriteProperty table if it exists for this user.
+
+    Returns:
+        QuerySet[Property]: Filtered queryset for the Property with given ID.
+    """
+    queryset = Property.objects.filter(id=id) if id else Property.objects.all()
+
+    queryset = queryset.prefetch_related(
+        Prefetch("property_images", queryset=PropertyImage.objects.all())
+    )
+
+    if favorites_user_id:
+        favorite_subquery = UserFavoriteProperty.objects.filter(
+            user_id=favorites_user_id, property_id=OuterRef("pk")
+        ).values("id")[:1]
+        queryset = queryset.annotate(favorite_id=Subquery(favorite_subquery))
+    else:
+        queryset = queryset.annotate(
+            favorite_id=Value(None, output_field=IntegerField(null=True))
+        )
+
+    return queryset

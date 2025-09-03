@@ -29,6 +29,7 @@ from apps.locations.models import City
 from apps.properties.docs import property_count_doc
 from apps.properties.models import Property, PropertyStatus, PropertyType
 from apps.properties.querysets import (
+    property_detail_queryset,
     property_list_queryset,
 )
 from apps.properties.serializers import (
@@ -134,7 +135,17 @@ class PropertyViewSet(BaseAPIViewSet[Property]):
             return Property.objects.none()
 
         country_code = self.request.GET.get("country_code")
-        if self.action in ["list", "count"]:
+        user_id = None
+        if hasattr(self.request, "user") and self.request.user.is_authenticated:
+            user_id = self.request.user.id
+
+        if self.action == "retrieve":
+            object_id = self.kwargs.get(self.lookup_field)
+            if not object_id:
+                return Property.objects.none()
+            return property_detail_queryset(id=object_id, favorites_user_id=user_id)
+
+        elif self.action in ["list", "count"]:
             if not country_code:
                 raise ValidationError(
                     {
@@ -144,17 +155,15 @@ class PropertyViewSet(BaseAPIViewSet[Property]):
                 )
 
             status = self.request.GET.getlist("status")
-            user_id = None
-            if hasattr(self.request, "user") and self.request.user.is_authenticated:
-                user_id = self.request.user.id
-
             return property_list_queryset(
                 favorites_user_id=user_id,
                 country_code=country_code,
                 status=status or PropertyStatus.ACTIVE,
             )
+
         elif self.action == "get_create_property_form_data":
             return Property.objects.none()
+
         elif self.action == "my_properties":
             queryset = property_list_queryset(
                 country_code=country_code,
@@ -162,6 +171,7 @@ class PropertyViewSet(BaseAPIViewSet[Property]):
             )
             queryset = queryset.filter(owner_id=self.request.user.id)
             return queryset
+
         else:
             return Property.objects.prefetch_related("property_images")
 
@@ -185,7 +195,7 @@ class PropertyViewSet(BaseAPIViewSet[Property]):
         description="""
     List properties with filtering.
 
-    - `country_code` is required in all queries
+    - `country_code` is required in the request
     - If `status` is not provided, defaults to `ACTIVE`
     - Other optional filters: city, property_type, price range, area range
 
