@@ -28,6 +28,7 @@ class TestPropertyAPI(TestSetUp):
         )
         cls.property_count_url: str = reverse("apps.properties:properties-count")
         cls.my_properties_url: str = reverse("apps.properties:properties-my-properties")
+        cls.favorite_url: str = reverse("apps.favorites:favorite-list")
 
     def setUp(self) -> None:
         super().setUp()
@@ -142,6 +143,21 @@ class TestPropertyAPI(TestSetUp):
         self.assertEqual(res.data["price"], 50000)
         self.assertEqual(res.data["price_currency"], "Euro")
         prop.delete()
+
+    def test_favorite_id_annotation(self) -> None:
+        property = self.create_property()
+        url: str = reverse(self.detail_url, kwargs={"pk": property.id})
+        res = self.client.get(url)
+        self.assertEqual(res.status_code, 200)
+        self.assertIsNone(res.data["favorite_id"])
+        self.client.force_authenticate(user=self.user)
+        fav_payload = {"property_id": property.id}
+        res = self.client.post(self.favorite_url, fav_payload)
+        self.assertEqual(res.status_code, 201)
+        fav_id = res.data["id"]
+        res = self.client.get(url)
+        self.assertEqual(res.status_code, 200)
+        self.assertEqual(res.data["favorite_id"], fav_id)
 
     def test_get_create_property_form_data(self) -> None:
         self.client.force_authenticate(user=self.user)
